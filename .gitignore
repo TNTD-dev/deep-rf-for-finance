@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# Secrets
+.env
+.env.local
+*.key
+
+# Data + artifacts (recreatable, large)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+results/*
+!results/.gitkeep
+backend/cache/*
+!backend/cache/.gitkeep
+
+# Notebooks: keep code, drop outputs (run nbstripout locally if you want)
+notebooks/.ipynb_checkpoints/
+
+# Models
+*.zip
+*.pt
+*.pth
+*.ckpt
+
+# Frontend (PKG-13+)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
