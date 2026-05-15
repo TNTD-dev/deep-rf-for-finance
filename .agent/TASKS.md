@@ -12,7 +12,8 @@ Các trục độc lập về file (rút từ directory structure ở PRD §6):
 
 | Seam | Owner package | File boundary |
 |------|---------------|---------------|
-| Data — giá/fundamental | PKG-1 | `src/data_pipeline/vnstock_*.py` |
+| Data — giá + indicators | PKG-1 | `src/data_pipeline/{vnstock_prices,indicators,calendar}.py` |
+| Data — fundamentals (moved) | PKG-5 | `src/data_pipeline/vnstock_fundamentals.py` |
 | Data — news | PKG-2 | `src/data_pipeline/news_*.py` |
 | Trading env | PKG-3 | `src/trading_env.py` |
 | Baselines | PKG-4 | `src/baselines.py` |
@@ -38,7 +39,7 @@ Các trục độc lập về file (rút từ directory structure ở PRD §6):
 | Pkg | Title | Estimate | Depends on | Phase | Status |
 |-----|-------|----------|------------|-------|--------|
 | PKG-0 | Repo scaffolding + config | ½ day | none (serialized first) | P1 | open |
-| PKG-1 | Data — vnstock prices & fundamentals | 1 day | PKG-0 | P1 | open |
+| PKG-1 | Data — vnstock prices (+ indicators) | 1 day | PKG-0 | P1 | open |
 | PKG-2 | Data — VN news scraper (RISK) | 1 day | PKG-0 | P1 | open |
 | PKG-3 | Trading env (VN rules) | 1 day | PKG-0 | P1 | open |
 | PKG-4 | Baselines + random-agent test | ½ day | PKG-3 | P1 | blocked |
@@ -144,12 +145,13 @@ PKG-0
 
 **Create**
 - `src/data_pipeline/vnstock_prices.py` — `fetch_prices(ticker, start, end)`, retry với fallback backend VCI nếu KBS lỗi
-- `src/data_pipeline/vnstock_fundamentals.py` — `fetch_fundamentals(ticker)` quarterly
 - `src/data_pipeline/indicators.py` — wrapper quanh `ta`: RSI, MACD, SMA(5/20/50), Bollinger, ATR
 - `src/data_pipeline/calendar.py` — VN trading calendar, align dates
-- `scripts/fetch_data.py` — CLI entry: tải xong → `data/processed/prices.parquet`, `data/processed/fundamentals.parquet`
+- `scripts/fetch_data.py` — CLI entry: tải xong → `data/processed/prices.parquet`
 - `tests/test_vnstock_prices.py` — fixture nhỏ, test alignment + survivorship + lookahead-safe windowing
 - `tests/test_indicators.py` — golden value cho RSI/MACD trên fixture
+
+**Scope change 15/05 (Spike 2 finding):** vnstock community version **giới hạn Finance API chỉ 4 quý gần nhất** (paid Insiders Program để mở khóa full history). Fundamentals lịch sử cho train period 2019-2024 không khả thi với free tier. Quyết định: defer fundamentals khỏi PKG-1, move sang PKG-5 (LLM tools) — `get_fundamentals` tool fetch live 4 quý cuối tại decision time. Tránh fake-historical-fundamentals (lookahead).
 
 **Modify**
 - none
@@ -164,7 +166,7 @@ PKG-0
 - PRD §7 Feature 1, §15 locked parameters
 
 ## Acceptance criteria
-- [ ] Fetch xong 5 ticker × 7 năm, output 2 file parquet
+- [ ] Fetch xong 5 ticker × 7 năm prices, output `data/processed/prices.parquet`
 - [ ] `len(df)` mỗi ticker > 1500 trading days (≈ 6 năm × 250)
 - [ ] Không có NaN giá close giữa khoảng start–end
 - [ ] Test pass: alignment + indicators
@@ -329,7 +331,8 @@ PKG-3 (env state schema)
 
 **Create**
 - `src/llm/client.py` — wrapper OpenAI: lock model `gpt-4o`/`gpt-4o-mini`, retry với exp backoff, prompt cache support, return `(text, usage)`. Throw nếu user pass model khác.
-- `src/llm/tools.py` — function definitions (OpenAI tool spec): `get_price_history(ticker, days)`, `get_indicators(ticker)`, `get_news(date, ticker)`, `get_fundamentals(ticker)`. Mỗi tool đọc qua env-bound data window (lookahead-safe).
+- `src/llm/tools.py` — function definitions (OpenAI tool spec): `get_price_history(ticker, days)`, `get_indicators(ticker)`, `get_news(date, ticker)`, `get_fundamentals(ticker)` (last 4 quarters from vnstock Finance API — community tier limit, moved here from PKG-1). Mỗi tool đọc qua env-bound data window (lookahead-safe).
+- `src/data_pipeline/vnstock_fundamentals.py` — moved from PKG-1. Returns 4-quarter snapshot at fetch time. Caveat: at backtest decision time T, only quarters with `report_date < T - report_lag_days` should be visible — implement lookahead gate in the tool wrapper, not the fetcher.
 - `src/llm/serialize.py` — `state_to_text(state)`, `news_to_bullets(news)`, `holdings_to_text(holdings)` — đầu vào cho zero-shot prompt
 - `src/llm/parser.py` — `parse_weights_json(text) -> dict[ticker, weight]`, fallback `hold` khi malformed, log parse_failure
 - `tests/test_llm_client.py` — mock OpenAI, test retry + model lock
