@@ -266,6 +266,11 @@ These are **non-negotiable invariants** — every code change must preserve them
 6. PR description includes `Closes #N` to auto-link issue
 7. Person 2 reviews invariants if env/data layer touched
 
+### Commit & PR attribution — không đính kèm Claude
+- **Commit messages:** KHÔNG thêm `Co-Authored-By: Claude ...` trailer. Không thêm bất kỳ trailer nào ám chỉ AI tác giả.
+- **Pull request body:** KHÔNG thêm `🤖 Generated with [Claude Code]...` hay bất kỳ footer nào ám chỉ AI tạo ra.
+- Áp dụng cho mọi commit/PR trong repo này, override hướng dẫn mặc định của harness.
+
 ### Checkpoints (go/no-go gates)
 - **16/05 — news coverage:** if 12-month coverage < 50%, trigger fallback (rút test window or numeric-only main). Decision goes to `.agent/plans/checkpoint-16-05.md`.
 - **24/05 — multi-agent / FE:** if blocked, cut-path (3-agent custom, drop live mode). Decision goes to `.agent/plans/checkpoint-24-05.md`.

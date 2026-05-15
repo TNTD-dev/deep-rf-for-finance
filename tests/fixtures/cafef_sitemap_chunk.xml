@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+    <url>
+        <loc>https://cafef.vn/vietcombank-tang-truong-tin-dung-188250701120000.chn</loc>
+        <priority>1</priority>
+        <lastmod>2025-07-01T12:00:00+07:00</lastmod>
+        <changefreq>daily</changefreq>
+        <image:image>
+            <image:loc>https://cafefcdn.com/img/1.png</image:loc>
+            <image:title><![CDATA[Vietcombank công bố lợi nhuận quý 2 tăng trưởng tích cực]]></image:title>
+            <image:caption><![CDATA[VCB caption]]></image:caption>
+        </image:image>
+    </url>
+    <url>
+        <loc>https://cafef.vn/hoa-phat-co-tuc-188250702140000.chn</loc>
+        <priority>1</priority>
+        <lastmod>2025-07-02T14:00:00+07:00</lastmod>
+        <changefreq>daily</changefreq>
+        <image:image>
+            <image:loc>https://cafefcdn.com/img/2.png</image:loc>
+            <image:title><![CDATA[Hòa Phát hoàn tất phát hành cổ phiếu trả cổ tức]]></image:title>
+            <image:caption><![CDATA[HPG caption]]></image:caption>
+        </image:image>
+    </url>
+    <url>
+        <loc>https://cafef.vn/vicostone-da-thach-anh-188250703100000.chn</loc>
+        <priority>1</priority>
+        <lastmod>2025-07-03T10:00:00+07:00</lastmod>
+        <changefreq>daily</changefreq>
+        <image:image>
+            <image:loc>https://cafefcdn.com/img/3.png</image:loc>
+            <image:title><![CDATA[VICOSTONE ra mắt sản phẩm đá thạch anh mới — không liên quan VIC Vingroup]]></image:title>
+            <image:caption><![CDATA[VCS caption]]></image:caption>
+        </image:image>
+    </url>
+    <url>
+        <loc>https://cafef.vn/loi-song-trekking-188250703180000.chn</loc>
+        <priority>1</priority>
+        <lastmod>2025-07-03T18:00:00+07:00</lastmod>
+        <changefreq>daily</changefreq>
+        <image:image>
+            <image:loc>https://cafefcdn.com/img/4.png</image:loc>
+            <image:title><![CDATA[10 cung đường trekking đẹp nhất Việt Nam mùa hè]]></image:title>
+            <image:caption><![CDATA[lifestyle caption]]></image:caption>
+        </image:image>
+    </url>
+    <url>
+        <loc>https://cafef.vn/vingroup-hoa-phat-cung-dau-tu-188250704090000.chn</loc>
+        <priority>1</priority>
+        <lastmod>2025-07-04T09:00:00+07:00</lastmod>
+        <changefreq>daily</changefreq>
+        <image:image>
+            <image:loc>https://cafefcdn.com/img/5.png</image:loc>
+            <image:title><![CDATA[Vingroup và Hòa Phát cùng đầu tư khu công nghiệp mới tại Hưng Yên]]></image:title>
+            <image:caption><![CDATA[VIC+HPG caption]]></image:caption>
+        </image:image>
+    </url>
+</urlset>
