@@ -95,6 +95,10 @@ def visible_news_at(
     session at which the news is usable, so equality means "usable today".
     """
     asof = pd.to_datetime(asof_session).normalize()
+    if "available_for_session" not in news_df.columns:
+        # Empty news_df with no schema — return same shape so downstream
+        # column access (sort_values, etc.) doesn't KeyError.
+        return news_df.copy()
     mask = (news_df["available_for_session"] <= asof) & news_df[
         "available_for_session"
     ].notna()
