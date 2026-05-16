@@ -162,8 +162,12 @@ class VNTradingEnv(gym.Env):
 
         fill_price = self._fill_price(t)
         pv = self._portfolio_value(t)
-        target_values = target_weights * pv
-        denom = np.maximum(fill_price, 1e-8)
+        # Promote to float64 for the lot-floor math. float32 weights × pv (~1e9)
+        # loses ~4 VND of precision per ticker, which silently drops one lot
+        # when BuyAndHold-style agents emit weights that should reproduce
+        # current holdings exactly.
+        target_values = np.asarray(target_weights, dtype=np.float64) * pv
+        denom = np.maximum(fill_price.astype(np.float64), 1e-8)
         target_shares = (
             np.floor(target_values / denom / config.LOT_SIZE).astype(np.int64)
             * config.LOT_SIZE
@@ -230,4 +234,5 @@ class VNTradingEnv(gym.Env):
             "cash": float(self._cash),
             "holdings": self._holdings.tolist(),
             "portfolio_value": self._portfolio_value(t),
+            "close_t": self.md.close[t].tolist(),
         }
