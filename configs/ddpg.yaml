@@ -1,0 +1,36 @@
+# DDPG hyperparams (PKG-9). Conservative starting point from Xiong et al
+# Section 4.2 + stable-baselines3 defaults. Verified non-divergent in Spike B.
+
+total_timesteps: 50000
+
+# Core sb3 DDPG params
+learning_rate: 0.0001
+buffer_size: 100000
+learning_starts: 1000
+batch_size: 128
+tau: 0.005
+gamma: 0.99
+train_freq: 1
+gradient_steps: 1
+verbose: 0
+
+# Network architecture (passed via policy_kwargs)
+policy_kwargs:
+  net_arch: [128, 128]
+
+# Action noise linear decay (custom ActionNoiseDecayCallback)
+action_noise:
+  sigma_start: 0.1
+  sigma_end: 0.02
+
+# Reward scaling — log-return × 100 ≈ unit scale for Q-network stability
+reward_scale: 100.0
+
+# Evaluation cadence on val split (custom ValMetricsCallback)
+eval_freq: 5000
+n_eval_episodes: 1
+
+# Divergence guard — abort training on non-finite loss
+# (Q-value check dropped: sb3 doesn't expose train/q_value)
+divergence:
+  log_interval: 100        # sb3 default; loss keys only populated post-log
