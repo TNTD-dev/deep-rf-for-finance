@@ -87,10 +87,15 @@ class LookaheadSafeTools:
         ``ticker`` filter. Visibility = ``available_for_session <= date``."""
         asof = pd.Timestamp(date).normalize() if date else self.asof_session
         visible = visible_news_at(self.news_data, asof)
-        if ticker is not None:
+        if ticker is not None and not visible.empty:
+            # `.apply(...)` on empty Series returns object dtype, which
+            # turns `visible[mask]` into label-indexing and drops columns —
+            # subsequent sort_values then KeyErrors. Guard the empty case.
             visible = visible[
                 visible["tickers"].apply(lambda lst: ticker in lst)
             ]
+        if visible.empty:
+            return []
         items = []
         for r in visible.sort_values(
             "published_at_utc", ascending=False

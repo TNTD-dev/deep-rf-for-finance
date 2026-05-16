@@ -92,6 +92,24 @@ def test_get_news_filters_by_ticker(synthetic_market_data) -> None:
     assert all("VCB" not in item["tickers"] or "FPT" in item["tickers"] for item in fpt_only)
 
 
+def test_get_news_with_ticker_filter_on_empty_visible(
+    synthetic_market_data,
+) -> None:
+    """asof BEFORE any news is visible + ticker filter → empty list, no crash.
+
+    Regression: prior `.apply(...)` on empty Series returned object-dtype
+    mask → label-indexing → dropped columns → KeyError at sort_values.
+    Live smoke against test split hit this when LLM passed
+    {date: '2025-05-05', ticker: 'VCB'} but visible news was empty.
+    """
+    md = synthetic_market_data
+    news = _news_df(md)
+    asof_early = md.dates[0]  # before any news.available_for_session
+    tools = LookaheadSafeTools(md, news, asof_early)
+    assert tools.get_news(ticker="VCB") == []
+    assert tools.get_news() == []  # no ticker filter — same path
+
+
 def test_get_fundamentals_quarter_visibility_lag(monkeypatch, synthetic_market_data) -> None:
     """Q2 ends 2025-06-30; visible_from = 2025-07-30. asof 2025-07-15 should
     NOT see Q2; asof 2025-08-01 should see it.
