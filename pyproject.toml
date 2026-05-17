@@ -39,6 +39,8 @@ dependencies = [
   "lxml>=5.0",
   # RL training hyperparam configs (PKG-9)
   "pyyaml>=6.0",
+  # Report figures (PKG-S S5b)
+  "matplotlib>=3.7",
 ]
 
 [project.optional-dependencies]
