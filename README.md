@@ -46,15 +46,19 @@ python scripts/run_baselines.py             # buy_and_hold, equal_weight, random
 python scripts/run_rl_backtest.py           # ddpg + ppo
 python scripts/run_zero_shot.py             # gpt-4o-mini single shot
 python scripts/run_single_agentic.py        # gpt-4o with tool calls
-python scripts/run_multi_agent.py           # ~25 min, ~$2.50 (full test split)
+python scripts/run_multi_agent.py           # ~25-30 min, ~$3 (full test split)
 
-python -m src.eval.run_all                  # aggregate → results/metrics_table.csv
+python scripts/run_all.py --skip-existing   # aggregate → results/metrics_table.csv
 python scripts/make_figures.py              # 4 PNG → report/figures/
 ```
 
-`python -m src.eval.run_all` is the single entry point that regenerates
-`metrics_table.csv` from each agent's `results/<agent>/*.parquet`. Same
-seed → identical trajectory (PRD §15 reproducibility).
+`scripts/run_all.py` is the single entry point that regenerates
+`metrics_table.csv` from each agent's `results/<agent>/*.parquet`.
+**Always pass `--skip-existing`** unless you actually want to re-run
+backtests — without it, every agent (including multi_agent, ~$3 LLM
+cost) is re-run from scratch. With `--skip-existing`, cached metrics
+are reused and only missing artifacts are rebuilt. Same seed →
+identical trajectory (PRD §15 reproducibility).
 
 ## Demo (full stack)
 
@@ -108,7 +112,7 @@ results/                     # per-agent backtest artifacts (gitignored)
 - All randomness seeded; same seed → same trajectory.
 - LLM agents cached by `(date, ticker_set, prompt_hash)`; re-runs reuse
   responses.
-- `python -m src.eval.run_all` is bit-deterministic on a second run.
+- `scripts/run_all.py --skip-existing` is bit-deterministic on a second run.
 
 ## Secrets
 
