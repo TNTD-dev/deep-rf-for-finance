@@ -23,3 +23,18 @@ export const BASELINE_NAMES = new Set(["buy_and_hold", "equal_weight", "random"]
 export const isBaseline = (name: string): boolean => BASELINE_NAMES.has(name);
 
 export const colorFor = (name: string): string => AGENT_COLORS[name] ?? "#94a3b8";
+
+// Agent category (used by AgentBadge + future grouping). Kept here so the
+// taxonomy lives next to the color palette — both encode the same logical
+// grouping (baselines = grays, RL = blues, LLM = warm).
+const RL_NAMES = new Set(["ddpg", "ppo"]);
+const LLM_NAMES = new Set(["zero_shot", "single_agentic", "multi_agent"]);
+
+export type AgentCategory = "baseline" | "rl" | "llm";
+
+export function agentCategory(name: string): AgentCategory {
+  if (BASELINE_NAMES.has(name)) return "baseline";
+  if (RL_NAMES.has(name)) return "rl";
+  if (LLM_NAMES.has(name)) return "llm";
+  return "baseline";
+}
