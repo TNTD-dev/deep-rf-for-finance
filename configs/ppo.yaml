@@ -1,0 +1,31 @@
+# PPO hyperparams (PKG-9). The DDPG backup — on-policy, no replay buffer,
+# far more stable than DDPG on small custom envs. PRD §14 Risk #7 mitigation.
+
+total_timesteps: 200000
+
+# Core sb3 PPO params
+learning_rate: 0.0003
+n_steps: 2048
+batch_size: 64
+n_epochs: 10
+gamma: 0.99
+gae_lambda: 0.95
+clip_range: 0.2
+ent_coef: 0.0
+vf_coef: 0.5
+verbose: 0
+
+# Network architecture
+policy_kwargs:
+  net_arch: [128, 128]
+
+# Reward scaling — PPO clip-ratio handles scale, no boost needed
+reward_scale: 1.0
+
+# Evaluation cadence
+eval_freq: 10000
+n_eval_episodes: 1
+
+# Divergence guard
+divergence:
+  log_interval: 1          # PPO logs each rollout (n_steps); pass through
