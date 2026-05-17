@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import {
@@ -68,13 +69,17 @@ export function MetricsTable({ payloads, visible }: Props) {
         {rows.map(({ name, m }) => (
           <TableRow key={name}>
             <TableCell className="font-medium">
-              <span className="inline-flex items-center gap-2">
+              {/* PKG-14: wrap agent name in Link to enable /agents/{id} navigation. */}
+              <Link
+                href={`/agents/${name}`}
+                className="inline-flex items-center gap-2 hover:underline"
+              >
                 <span
                   className="inline-block h-3 w-3 rounded-sm"
                   style={{ backgroundColor: colorFor(name) }}
                 />
                 {name}
-              </span>
+              </Link>
             </TableCell>
             <TableCell
               className={
