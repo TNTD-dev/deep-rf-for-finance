@@ -1,4 +1,4 @@
-import type { AgentList, BacktestPayload } from "@/lib/types";
+import type { AgentList, BacktestPayload, DebateTranscript } from "@/lib/types";
 
 // Hardcoded for localhost demo. To change for a moving demo, edit this line.
 export const BACKEND_URL = "http://localhost:8000";
@@ -12,5 +12,14 @@ export async function getAgents(): Promise<AgentList> {
 export async function getBacktest(agent: string): Promise<BacktestPayload> {
   const r = await fetch(`${BACKEND_URL}/backtest/${agent}`);
   if (!r.ok) throw new Error(`GET /backtest/${agent} failed: ${r.status}`);
+  return r.json();
+}
+
+export async function getDebate(
+  agent: string,
+  date: string,
+): Promise<DebateTranscript> {
+  const r = await fetch(`${BACKEND_URL}/debate/${agent}/${date}`);
+  if (!r.ok) throw new Error(`GET /debate/${agent}/${date} failed: ${r.status}`);
   return r.json();
 }
