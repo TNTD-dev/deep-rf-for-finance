@@ -55,3 +55,21 @@ export interface AgentList {
   agents: string[];
   baselines: string[];
 }
+
+// Mirror of backend/models.py DebateEntry + DebateTranscript (PKG-11).
+// content may be empty (portfolio_manager's text is replaced by a
+// structured `decision` dict — see backend/routes/debate.py:53-66).
+
+export interface DebateEntry {
+  role: string; // one of ROLE_NAMES from src/llm/multi_agent/state.py
+  content: string;
+  model?: string | null;
+  ts?: string;
+  decision?: Record<string, number>;
+  [key: string]: unknown;
+}
+
+export interface DebateTranscript {
+  date: string;
+  transcript: DebateEntry[];
+}

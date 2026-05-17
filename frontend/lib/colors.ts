@@ -38,3 +38,20 @@ export function agentCategory(name: string): AgentCategory {
   if (LLM_NAMES.has(name)) return "llm";
   return "baseline";
 }
+
+// Per-role colors for the multi-agent debate replay (PKG-15).
+// Separate palette from AGENT_COLORS so RoleBadge + DebateStream stay
+// visually distinct from the dashboard's agent-level coloring.
+// Analysts = cool family; debate = bull green / bear red; chain = warm.
+export const ROLE_COLORS: Record<string, string> = {
+  technical_analyst: "#0ea5e9", // sky-500
+  news_sentiment_analyst: "#06b6d4", // cyan-500
+  fundamental_analyst: "#14b8a6", // teal-500
+  bullish_researcher: "#10b981", // emerald-500
+  bearish_researcher: "#ef4444", // red-500
+  trader: "#f59e0b", // amber-500
+  risk_manager: "#ea580c", // orange-600
+  portfolio_manager: "#7c3aed", // violet-600
+};
+
+export const roleColor = (role: string): string => ROLE_COLORS[role] ?? "#94a3b8";
