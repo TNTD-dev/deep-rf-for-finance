@@ -43,6 +43,13 @@ def _list(key: str, default: str) -> list[str]:
     return [tok.strip() for tok in raw.split(",") if tok.strip()]
 
 
+def _bool(key: str, default: bool) -> bool:
+    raw = os.getenv(key)
+    if raw is None:
+        return default
+    return raw.strip().lower() in ("1", "true", "yes", "on")
+
+
 # Universe (PRD §15 locked) ---------------------------------------------------
 TICKERS: list[str] = _list("TICKERS", "VCB,FPT,HPG,VIC,VNM")
 
@@ -67,3 +74,8 @@ LLM_MODEL_MINI: str = _str("LLM_MODEL_MINI", "gpt-4o-mini")
 LLM_ALLOWED_MODELS: frozenset[str] = frozenset({LLM_MODEL_PRIMARY, LLM_MODEL_MINI})
 
 OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+
+# Demo fallback (PKG-S S3) ----------------------------------------------------
+# When true, /live/run returns 503 instead of calling LLM. Demo falls back to
+# cached transcripts via /debate. Cứu cánh khi mất wifi giữa buổi.
+OFFLINE_MODE: bool = _bool("OFFLINE_MODE", False)

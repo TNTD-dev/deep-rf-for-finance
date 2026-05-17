@@ -100,3 +100,30 @@ def test_get_debate_omits_decision_on_parse_failure(client: TestClient, tmp_path
     body = client.get("/debate/multi_agent/2025-05-05").json()
     last = body["transcript"][-1]
     assert "decision" not in last
+
+
+# ---------------------------------------------------------------------------
+# PKG-S S5b: GET /debate/{agent} (list dates)
+# ---------------------------------------------------------------------------
+
+
+def test_list_dates_empty_when_no_dir(client: TestClient) -> None:
+    r = client.get("/debate/multi_agent")
+    assert r.status_code == 200
+    assert r.json() == {"agent": "multi_agent", "dates": []}
+
+
+def test_list_dates_returns_sorted(client: TestClient, tmp_path: Path) -> None:
+    # Write out of order; expect chronological back.
+    _write_transcript(tmp_path, "2025-05-12")
+    _write_transcript(tmp_path, "2025-05-05")
+    _write_transcript(tmp_path, "2025-05-19")
+    body = client.get("/debate/multi_agent").json()
+    assert body["agent"] == "multi_agent"
+    assert body["dates"] == ["2025-05-05", "2025-05-12", "2025-05-19"]
+
+
+def test_list_dates_400_on_non_multi_agent(client: TestClient) -> None:
+    r = client.get("/debate/buy_and_hold")
+    assert r.status_code == 400
+    assert "multi_agent" in r.json()["detail"]

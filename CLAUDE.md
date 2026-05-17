@@ -107,7 +107,7 @@ python scripts/train_ddpg.py            # PKG-9
 python scripts/train_ppo.py             # backup
 
 # Backtest all strategies
-python -m src.eval.run_all              # PKG-10
+python scripts/run_all.py --skip-existing  # PKG-10 (drop --skip-existing to re-run)
 
 # Backend
 uvicorn backend.main:app --reload       # PKG-11+
@@ -206,7 +206,7 @@ These are **non-negotiable invariants** — every code change must preserve them
 ### 5. Reproducibility
 - All randomness seeded. Same seed → same trajectory.
 - LLM agents cache by `(date, ticker_set, prompt_hash)` so re-runs reuse responses.
-- `python -m src.eval.run_all` must yield identical `metrics.json` on second run.
+- `python scripts/run_all.py --skip-existing` must yield identical `metrics.json` on second run.
 
 ### 6. Secrets
 - `.env` is gitignored. **Never commit OpenAI key.** Never paste it into PRs, issues, or chat.
@@ -250,7 +250,7 @@ These are **non-negotiable invariants** — every code change must preserve them
 - `src/trading_env.py` — env invariants live here. Person 2 reviews any change.
 - `src/llm/client.py` — model whitelist + retry. Don't bypass for "just one experiment".
 - `src/agents/__init__.py` — registry. **Serialized** — touched by multiple packages, merged in PKG-S.
-- `src/eval/run_all.py` — single entry to reproduce all backtests.
+- `scripts/run_all.py` — single entry to reproduce all backtests (pass `--skip-existing`).
 - `.env` — secrets. **Never commit.**
 
 ---

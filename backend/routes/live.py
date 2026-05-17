@@ -14,7 +14,8 @@ import asyncio
 import logging
 from collections.abc import AsyncIterator
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
@@ -122,8 +123,16 @@ async def _with_timeout(aiter: AsyncIterator[dict], timeout: float) -> AsyncIter
         yield item
 
 
+_OFFLINE_PAYLOAD = {
+    "detail": "OFFLINE_MODE=true — demo dùng cached transcripts. Xem /debate.",
+}
+
+
 @router.post("/live/run")
-async def live_run(req: LiveRunRequest, request: Request) -> EventSourceResponse:
+async def live_run(req: LiveRunRequest, request: Request) -> Response:
+    if config.OFFLINE_MODE:
+        return JSONResponse(status_code=503, content=_OFFLINE_PAYLOAD)
+
     async def event_gen() -> AsyncIterator[dict]:
         try:
             async for event in _with_timeout(_stream_graph_events(req), timeout=_DEFAULT_TIMEOUT_S):
@@ -142,8 +151,12 @@ async def live_run(req: LiveRunRequest, request: Request) -> EventSourceResponse
 
 
 @router.get("/live/run")
-async def live_run_get(request: Request) -> EventSourceResponse:
+async def live_run_get(request: Request) -> Response:
     # PKG-16: GET form for browser EventSource (which is GET-only). Reuses
     # the POST handler with default LiveRunRequest. POST endpoint retained
     # for PKG-S future custom-tickers UI.
+    # PKG-S S3: short-circuit here too (defense in depth) so the offline
+    # check is co-located with each route entry, not buried in the delegate.
+    if config.OFFLINE_MODE:
+        return JSONResponse(status_code=503, content=_OFFLINE_PAYLOAD)
     return await live_run(LiveRunRequest(), request)

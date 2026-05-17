@@ -167,3 +167,23 @@ def test_live_run_accepts_optional_request_body(client):
     events = _parse_sse(r.text)
     assert any(e.get("event") == "agent_start" for e in events)
     assert any(e.get("event") == "decision" for e in events)
+
+
+# ---------------------------------------------------------------------------
+# PKG-S S3: OFFLINE_MODE short-circuit
+# ---------------------------------------------------------------------------
+
+
+def test_live_run_503_when_offline_mode(monkeypatch):
+    from backend.routes import live as live_mod
+
+    monkeypatch.setattr(live_mod.config, "OFFLINE_MODE", True)
+    client = TestClient(create_app())
+
+    r_post = client.post("/live/run", json={})
+    assert r_post.status_code == 503
+    assert "OFFLINE_MODE" in r_post.json()["detail"]
+
+    r_get = client.get("/live/run")
+    assert r_get.status_code == 503
+    assert "OFFLINE_MODE" in r_get.json()["detail"]
