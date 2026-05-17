@@ -139,3 +139,11 @@ async def live_run(req: LiveRunRequest, request: Request) -> EventSourceResponse
             yield sse_event("error", {"message": str(e)[:300]})
 
     return EventSourceResponse(event_gen(), ping=15)
+
+
+@router.get("/live/run")
+async def live_run_get(request: Request) -> EventSourceResponse:
+    # PKG-16: GET form for browser EventSource (which is GET-only). Reuses
+    # the POST handler with default LiveRunRequest. POST endpoint retained
+    # for PKG-S future custom-tickers UI.
+    return await live_run(LiveRunRequest(), request)

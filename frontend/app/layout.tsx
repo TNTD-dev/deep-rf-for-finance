@@ -25,6 +25,9 @@ export default function RootLayout({
             <Link href="/debate" className="hover:underline">
               Debate
             </Link>
+            <Link href="/live" className="hover:underline">
+              Live
+            </Link>
           </div>
         </nav>
         {children}
