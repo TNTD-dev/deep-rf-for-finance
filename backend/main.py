@@ -21,7 +21,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.cache import JSONFileCache
-from backend.routes import agents, backtest, debate, healthz
+from backend.routes import agents, backtest, debate, healthz, live
 from src import config
 
 RESULTS_DIR = config.PROJECT_ROOT / "results"
@@ -59,6 +59,7 @@ def create_app() -> FastAPI:
     app.include_router(agents.router)
     app.include_router(backtest.router)
     app.include_router(debate.router)
+    app.include_router(live.router)
     return app
 
 

@@ -10,36 +10,12 @@ omit decision (don't crash; PKG-15 UI handles missing decision).
 
 from __future__ import annotations
 
-import json
-import re
-
 from fastapi import APIRouter, HTTPException, Request
 
 from backend.models import DebateTranscript
+from backend.sse import extract_decision
 
 router = APIRouter()
-
-_JSON_BLOCK_RE = re.compile(r"```(?:json)?\s*(\{.+?\})\s*```", re.DOTALL)
-_BARE_OBJECT_RE = re.compile(r"\{[^{}]*\}", re.DOTALL)
-
-
-def _extract_decision(text: str | None) -> dict | None:
-    """Pull the first JSON object out of an LLM output. Returns the dict or
-    None on any parse failure. Pure function — no env, no side effects."""
-    if not text:
-        return None
-    m = _JSON_BLOCK_RE.search(text)
-    blob = m.group(1) if m else None
-    if blob is None:
-        m = _BARE_OBJECT_RE.search(text)
-        blob = m.group(0) if m else None
-    if blob is None:
-        return None
-    try:
-        parsed = json.loads(blob)
-    except json.JSONDecodeError:
-        return None
-    return parsed if isinstance(parsed, dict) else None
 
 
 @router.get("/debate/{agent}/{date}", response_model=DebateTranscript)
@@ -59,7 +35,7 @@ def get_debate(agent: str, date: str, request: Request) -> dict:
         }
         for e in raw.get("transcript", [])
     ]
-    decision = _extract_decision(raw.get("portfolio_manager_output"))
+    decision = extract_decision(raw.get("portfolio_manager_output"))
     if decision and mapped and mapped[-1]["role"] == "portfolio_manager":
         mapped[-1]["decision"] = decision
     return {"date": raw["date"], "transcript": mapped}
