@@ -73,3 +73,12 @@ export interface DebateTranscript {
   date: string;
   transcript: DebateEntry[];
 }
+
+// PKG-16: SSE event shape emitted by backend/routes/live.py.
+// Discriminated union — TypeScript narrows on `type`.
+
+export type LiveEvent =
+  | { type: "agent_start"; role: string }
+  | { type: "agent_complete"; role: string; summary: string }
+  | { type: "decision"; weights: Record<string, number>; rationale: string }
+  | { type: "error"; message: string };
