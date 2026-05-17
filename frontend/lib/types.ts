@@ -1,0 +1,57 @@
+// TypeScript mirror of backend/models.py — keep in sync when Pydantic changes.
+
+export interface Provenance {
+  ts: string;
+  seed: number;
+  test_window: string[] | null;
+  n_steps: number;
+}
+
+export interface PortfolioPoint {
+  date: string; // "YYYY-MM-DD"
+  value: number; // int VND
+}
+
+// HoldingsPoint = {date: string, [ticker: string]: number | string}
+// date is the first key; other keys are tickers (VCB, FPT, ...) mapping to int counts.
+export type HoldingsPoint = { date: string } & { [ticker: string]: number | string };
+
+export interface Metrics {
+  // Required (always present from PKG-10 build_payload)
+  cumulative_return: number;
+  sharpe: number;
+  sortino: number;
+  max_drawdown: number;
+  turnover: number;
+  total_cost: number;
+  n_steps: number;
+  // LLM extras — present only on LLM / multi_agent rows
+  llm_cost_usd?: number;
+  avg_latency_s?: number;
+  max_latency_s?: number;
+  timeout_rate?: number;
+  node_errors_total?: number;
+  avg_debate_rounds?: number;
+  parse_failure_rate?: number;
+  n_decisions?: number;
+  avg_iterations_per_decision?: number;
+  hallucination_rate?: number;
+  cap_hit_rate?: number;
+  cached_tokens?: number;
+  llm_calls?: number;
+  // Index signature for extras Pydantic 'extra="allow"' may surface
+  [key: string]: number | undefined;
+}
+
+export interface BacktestPayload {
+  agent: string;
+  portfolio_curve: PortfolioPoint[];
+  holdings: HoldingsPoint[];
+  metrics: Metrics;
+  provenance: Provenance;
+}
+
+export interface AgentList {
+  agents: string[];
+  baselines: string[];
+}

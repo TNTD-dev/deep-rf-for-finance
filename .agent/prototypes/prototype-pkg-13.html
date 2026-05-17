@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DRL vs LLM/Agentic Trading — VN30 (PKG-13 prototype)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<style>body{font-family:ui-sans-serif,system-ui,-apple-system,sans-serif}</style>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased">
+<main class="container mx-auto py-6 px-4 space-y-6 max-w-7xl">
+
+  <header class="border-b border-gray-200 pb-4">
+    <h1 class="text-2xl font-bold tracking-tight">DRL vs LLM/Agentic Trading — VN30</h1>
+    <p class="text-sm text-gray-600 mt-1">
+      Test period 2025-05-05 → 2026-04-29 · 248 sessions · 8 agents ·
+      <span class="inline-block ml-1 px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-900">PROTOTYPE — static HTML, not the real app</span>
+    </p>
+  </header>
+
+  <!-- AgentToggle -->
+  <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <h2 class="text-sm font-semibold text-gray-700 mb-3">Show / Hide Agents</h2>
+    <div id="toggles" class="flex flex-wrap gap-2"></div>
+  </section>
+
+  <!-- Chart -->
+  <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <h2 class="text-sm font-semibold text-gray-700 mb-3">Portfolio Curve Overlay</h2>
+    <div style="position:relative;height:420px"><canvas id="chart"></canvas></div>
+    <p class="text-xs text-gray-500 mt-2">
+      Baselines render dashed (background context). RL agents = cool blues. LLM agents = warm reds/orange.
+      LLM curves have only 5-11 points (smoke runs); chart connects across gaps.
+    </p>
+  </section>
+
+  <!-- MetricsTable -->
+  <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <h2 class="text-sm font-semibold text-gray-700 mb-3">Metrics</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="border-b border-gray-200 text-left text-gray-600">
+          <tr>
+            <th class="py-2 pr-4">Agent</th>
+            <th class="py-2 pr-4 cursor-pointer select-none" data-col="cumulative_return">Cum Return <span class="sort-ind">↓</span></th>
+            <th class="py-2 pr-4 cursor-pointer select-none" data-col="sharpe">Sharpe <span class="sort-ind"></span></th>
+            <th class="py-2 pr-4 cursor-pointer select-none" data-col="sortino">Sortino <span class="sort-ind"></span></th>
+            <th class="py-2 pr-4 cursor-pointer select-none" data-col="max_drawdown">Max DD <span class="sort-ind"></span></th>
+            <th class="py-2 pr-4 cursor-pointer select-none" data-col="total_cost">Total Cost <span class="sort-ind"></span></th>
+            <th class="py-2 pr-4 text-right">LLM Cost</th>
+            <th class="py-2 pr-4 text-right">Steps</th>
+          </tr>
+        </thead>
+        <tbody id="tbody" class="divide-y divide-gray-100"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="text-xs text-gray-500 pt-4 border-t border-gray-200">
+    Backend (PKG-11) <code class="bg-gray-100 px-1 rounded">localhost:8000</code> ·
+    Tech stack lock: Next.js 15 + Tailwind v3 + shadcn/ui + Recharts ·
+    This is a static HTML mock with real data from <code class="bg-gray-100 px-1 rounded">results/</code>.
+  </footer>
+</main>
+
+<script>
+const DATA = {"buy_and_hold": {"portfolio_curve": [{"date": "2025-05-05", "value": 1000000000}, {"date": "2025-05-08", "value": 1033270653}, {"date": "2025-05-13", "value": 1048727301}, {"date": "2025-05-16", "value": 1053768332}, {"date": "2025-05-21", "value": 1081210947}, {"date": "2025-05-26", "value": 1081339705}, {"date": "2025-05-29", "value": 1084674756}, {"date": "2025-06-03", "value": 1093283000}, {"date": "2025-06-06", "value": 1083459248}, {"date": "2025-06-11", "value": 1068745648}, {"date": "2025-06-16", "value": 1071098800}, {"date": "2025-06-19", "value": 1077065443}, {"date": "2025-06-24", "value": 1097089782}, {"date": "2025-06-27", "value": 1106090901}, {"date": "2025-07-02", "value": 1112559179}, {"date": "2025-07-07", "value": 1124127147}, {"date": "2025-07-10", "value": 1176903311}, {"date": "2025-07-15", "value": 1212203003}, {"date": "2025-07-18", "value": 1237940218}, {"date": "2025-07-23", "value": 1241821444}, {"date": "2025-07-28", "value": 1249850384}, {"date": "2025-07-31", "value": 1179257967}, {"date": "2025-08-05", "value": 1228890191}, {"date": "2025-08-08", "value": 1245076872}, {"date": "2025-08-13", "value": 1245320367}, {"date": "2025-08-18", "value": 1249823908}, {"date": "2025-08-21", "value": 1258792998}, {"date": "2025-08-26", "value": 1281973475}, {"date": "2025-08-29", "value": 1283807797}, {"date": "2025-09-05", "value": 1288409769}, {"date": "2025-09-10", "value": 1290950649}, {"date": "2025-09-15", "value": 1335771572}, {"date": "2025-09-18", "value": 1342378595}, {"date": "2025-09-23", "value": 1326636871}, {"date": "2025-09-26", "value": 1365809611}, {"date": "2025-10-01", "value": 1373009569}, {"date": "2025-10-06", "value": 1419356392}, {"date": "2025-10-09", "value": 1414975782}, {"date": "2025-10-14", "value": 1493653013}, {"date": "2025-10-17", "value": 1449516213}, {"date": "2025-10-22", "value": 1436545568}, {"date": "2025-10-27", "value": 1465645980}, {"date": "2025-10-30", "value": 1459140866}, {"date": "2025-11-04", "value": 1449649278}, {"date": "2025-11-07", "value": 1433616324}, {"date": "2025-11-12", "value": 1481132486}, {"date": "2025-11-17", "value": 1510977918}, {"date": "2025-11-20", "value": 1528582576}, {"date": "2025-11-25", "value": 1567957799}, {"date": "2025-11-28", "value": 1611669344}, {"date": "2025-12-03", "value": 1646575509}, {"date": "2025-12-08", "value": 1734255094}, {"date": "2025-12-11", "value": 1688864014}, {"date": "2025-12-16", "value": 1678556290}, {"date": "2025-12-19", "value": 1708192549}, {"date": "2025-12-24", "value": 1811133832}, {"date": "2025-12-29", "value": 1761601145}, {"date": "2026-01-05", "value": 1822579793}, {"date": "2026-01-08", "value": 1877696353}, {"date": "2026-01-13", "value": 1881363291}, {"date": "2026-01-16", "value": 1873558953}, {"date": "2026-01-21", "value": 1871012320}, {"date": "2026-01-26", "value": 1834223858}, {"date": "2026-01-29", "value": 1760163839}, {"date": "2026-02-03", "value": 1707888447}, {"date": "2026-02-06", "value": 1665576985}, {"date": "2026-02-11", "value": 1774223217}, {"date": "2026-02-23", "value": 1845150350}, {"date": "2026-02-26", "value": 1886243446}, {"date": "2026-03-03", "value": 1752469629}, {"date": "2026-03-06", "value": 1739236921}, {"date": "2026-03-11", "value": 1678874879}, {"date": "2026-03-16", "value": 1652235648}, {"date": "2026-03-19", "value": 1650998969}, {"date": "2026-03-24", "value": 1522806856}, {"date": "2026-03-27", "value": 1578902083}, {"date": "2026-04-01", "value": 1628593314}, {"date": "2026-04-06", "value": 1621564131}, {"date": "2026-04-09", "value": 1692165662}, {"date": "2026-04-14", "value": 1779446091}, {"date": "2026-04-17", "value": 1893891956}, {"date": "2026-04-22", "value": 1998983189}, {"date": "2026-04-28", "value": 2093107595}, {"date": "2026-04-29", "value": 2031849545}], "metrics": {"cumulative_return": 1.0318495451162555, "sharpe": 2.751221520158974, "sortino": 3.565634415357198, "max_drawdown": 0.19709258160313267, "turnover": 0.01829275563254948, "total_cost": 1426553.1612144469, "n_steps": 247}}, "ddpg": {"portfolio_curve": [{"date": "2025-05-05", "value": 1000000000}, {"date": "2025-05-08", "value": 1018782363}, {"date": "2025-05-13", "value": 1038726530}, {"date": "2025-05-16", "value": 1045873771}, {"date": "2025-05-21", "value": 1030666658}, {"date": "2025-05-26", "value": 1028994518}, {"date": "2025-05-29", "value": 1022879566}, {"date": "2025-06-03", "value": 1026885950}, {"date": "2025-06-06", "value": 1014524185}, {"date": "2025-06-11", "value": 1019946866}, {"date": "2025-06-16", "value": 1038367617}, {"date": "2025-06-19", "value": 1028363599}, {"date": "2025-06-24", "value": 1031691378}, {"date": "2025-06-27", "value": 1043145298}, {"date": "2025-07-02", "value": 1054383583}, {"date": "2025-07-07", "value": 1074537912}, {"date": "2025-07-10", "value": 1103108474}, {"date": "2025-07-15", "value": 1111805758}, {"date": "2025-07-18", "value": 1115478000}, {"date": "2025-07-23", "value": 1133451478}, {"date": "2025-07-28", "value": 1145854996}, {"date": "2025-07-31", "value": 1092408091}, {"date": "2025-08-05", "value": 1099994609}, {"date": "2025-08-08", "value": 1106036956}, {"date": "2025-08-13", "value": 1109736634}, {"date": "2025-08-18", "value": 1102616065}, {"date": "2025-08-21", "value": 1101771067}, {"date": "2025-08-26", "value": 1095483615}, {"date": "2025-08-29", "value": 1127674433}, {"date": "2025-09-05", "value": 1132143257}, {"date": "2025-09-10", "value": 1107893851}, {"date": "2025-09-15", "value": 1130590262}, {"date": "2025-09-18", "value": 1126711257}, {"date": "2025-09-23", "value": 1086739815}, {"date": "2025-09-26", "value": 1086547493}, {"date": "2025-10-01", "value": 1073664417}, {"date": "2025-10-06", "value": 1094898967}, {"date": "2025-10-09", "value": 1091807694}, {"date": "2025-10-14", "value": 1084511250}, {"date": "2025-10-17", "value": 1049524485}, {"date": "2025-10-22", "value": 1055539823}, {"date": "2025-10-27", "value": 1061290094}, {"date": "2025-10-30", "value": 1087170087}, {"date": "2025-11-04", "value": 1087710599}, {"date": "2025-11-07", "value": 1076774362}, {"date": "2025-11-12", "value": 1090440077}, {"date": "2025-11-17", "value": 1110249095}, {"date": "2025-11-20", "value": 1089698226}, {"date": "2025-11-25", "value": 1092338789}, {"date": "2025-11-28", "value": 1090180088}, {"date": "2025-12-03", "value": 1104968368}, {"date": "2025-12-08", "value": 1088287528}, {"date": "2025-12-11", "value": 1076913833}, {"date": "2025-12-16", "value": 1083991274}, {"date": "2025-12-19", "value": 1082957981}, {"date": "2025-12-24", "value": 1064459239}, {"date": "2025-12-29", "value": 1071210894}, {"date": "2026-01-05", "value": 1063426810}, {"date": "2026-01-08", "value": 1120912761}, {"date": "2026-01-13", "value": 1195849578}, {"date": "2026-01-16", "value": 1256765455}, {"date": "2026-01-21", "value": 1259116099}, {"date": "2026-01-26", "value": 1206516032}, {"date": "2026-01-29", "value": 1251560562}, {"date": "2026-02-03", "value": 1257646089}, {"date": "2026-02-06", "value": 1178374914}, {"date": "2026-02-11", "value": 1179976544}, {"date": "2026-02-23", "value": 1182253221}, {"date": "2026-02-26", "value": 1159964745}, {"date": "2026-03-03", "value": 1083012108}, {"date": "2026-03-06", "value": 1054763154}, {"date": "2026-03-11", "value": 1045190740}, {"date": "2026-03-16", "value": 1020869150}, {"date": "2026-03-19", "value": 1016106079}, {"date": "2026-03-24", "value": 1002024763}, {"date": "2026-03-27", "value": 1010271388}, {"date": "2026-04-01", "value": 1006769216}, {"date": "2026-04-06", "value": 992650899}, {"date": "2026-04-09", "value": 1025158588}, {"date": "2026-04-14", "value": 1016514337}, {"date": "2026-04-17", "value": 1013010983}, {"date": "2026-04-22", "value": 1008940632}, {"date": "2026-04-28", "value": 1007423991}, {"date": "2026-04-29", "value": 1010723213}], "metrics": {"cumulative_return": 0.010723213321729874, "sharpe": 0.04811648344679401, "sortino": 0.0678508849403285, "max_drawdown": 0.23178212120024322, "turnover": 0.01708165311881476, "total_cost": 6304337.265995026, "n_steps": 247}}, "equal_weight": {"portfolio_curve": [{"date": "2025-05-05", "value": 1000000000}, {"date": "2025-05-08", "value": 1032670980}, {"date": "2025-05-13", "value": 1047802926}, {"date": "2025-05-16", "value": 1053001481}, {"date": "2025-05-21", "value": 1076089519}, {"date": "2025-05-26", "value": 1075618272}, {"date": "2025-05-29", "value": 1077345785}, {"date": "2025-06-03", "value": 1085716827}, {"date": "2025-06-06", "value": 1076368879}, {"date": "2025-06-11", "value": 1065640067}, {"date": "2025-06-16", "value": 1070752107}, {"date": "2025-06-19", "value": 1075370374}, {"date": "2025-06-24", "value": 1092906260}, {"date": "2025-06-27", "value": 1102534528}, {"date": "2025-07-02", "value": 1109556349}, {"date": "2025-07-07", "value": 1122772174}, {"date": "2025-07-10", "value": 1173592601}, {"date": "2025-07-15", "value": 1203528138}, {"date": "2025-07-18", "value": 1224602975}, {"date": "2025-07-23", "value": 1232785310}, {"date": "2025-07-28", "value": 1241288201}, {"date": "2025-07-31", "value": 1174997587}, {"date": "2025-08-05", "value": 1217801392}, {"date": "2025-08-08", "value": 1234741153}, {"date": "2025-08-13", "value": 1235982776}, {"date": "2025-08-18", "value": 1238370357}, {"date": "2025-08-21", "value": 1243050421}, {"date": "2025-08-26", "value": 1256918712}, {"date": "2025-08-29", "value": 1268001457}, {"date": "2025-09-05", "value": 1276091323}, {"date": "2025-09-10", "value": 1272110263}, {"date": "2025-09-15", "value": 1312177178}, {"date": "2025-09-18", "value": 1312958918}, {"date": "2025-09-23", "value": 1289373341}, {"date": "2025-09-26", "value": 1312315941}, {"date": "2025-10-01", "value": 1310693035}, {"date": "2025-10-06", "value": 1347767630}, {"date": "2025-10-09", "value": 1343124894}, {"date": "2025-10-14", "value": 1376510248}, {"date": "2025-10-17", "value": 1338265778}, {"date": "2025-10-22", "value": 1329517257}, {"date": "2025-10-27", "value": 1343183977}, {"date": "2025-10-30", "value": 1356196960}, {"date": "2025-11-04", "value": 1351816734}, {"date": "2025-11-07", "value": 1335846154}, {"date": "2025-11-12", "value": 1369469476}, {"date": "2025-11-17", "value": 1393731706}, {"date": "2025-11-20", "value": 1391708515}, {"date": "2025-11-25", "value": 1407390267}, {"date": "2025-11-28", "value": 1421117003}, {"date": "2025-12-03", "value": 1444130991}, {"date": "2025-12-08", "value": 1466891590}, {"date": "2025-12-11", "value": 1444447087}, {"date": "2025-12-16", "value": 1445593636}, {"date": "2025-12-19", "value": 1455541770}, {"date": "2025-12-24", "value": 1477913350}, {"date": "2025-12-29", "value": 1468342004}, {"date": "2026-01-05", "value": 1477087034}, {"date": "2026-01-08", "value": 1533220322}, {"date": "2026-01-13", "value": 1586733421}, {"date": "2026-01-16", "value": 1622272485}, {"date": "2026-01-21", "value": 1616245823}, {"date": "2026-01-26", "value": 1571324026}, {"date": "2026-01-29", "value": 1575601803}, {"date": "2026-02-03", "value": 1555366626}, {"date": "2026-02-06", "value": 1502206729}, {"date": "2026-02-11", "value": 1545769039}, {"date": "2026-02-23", "value": 1576714162}, {"date": "2026-02-26", "value": 1592606559}, {"date": "2026-03-03", "value": 1491005347}, {"date": "2026-03-06", "value": 1466674621}, {"date": "2026-03-11", "value": 1442451016}, {"date": "2026-03-16", "value": 1414343682}, {"date": "2026-03-19", "value": 1410644330}, {"date": "2026-03-24", "value": 1351840373}, {"date": "2026-03-27", "value": 1381226068}, {"date": "2026-04-01", "value": 1401510231}, {"date": "2026-04-06", "value": 1388570296}, {"date": "2026-04-09", "value": 1442470001}, {"date": "2026-04-14", "value": 1467687601}, {"date": "2026-04-17", "value": 1496227299}, {"date": "2026-04-22", "value": 1523465158}, {"date": "2026-04-28", "value": 1542780095}, {"date": "2026-04-29", "value": 1530664440}], "metrics": {"cumulative_return": 0.5306644409152768, "sharpe": 2.1409946149965045, "sortino": 2.7236439030545703, "max_drawdown": 0.18183247381374384, "turnover": 0.02066731589745777, "total_cost": 9811184.034278393, "n_steps": 247}}, "multi_agent": {"portfolio_curve": [{"date": "2025-05-05", "value": 1000000000}, {"date": "2025-05-06", "value": 999645355}, {"date": "2025-05-07", "value": 1007614452}, {"date": "2025-05-08", "value": 1030941751}, {"date": "2025-05-09", "value": 1027936757}], "metrics": {"cumulative_return": 0.02793675781585847, "sharpe": 10.85774119110705, "sortino": 85.28474641554085, "max_drawdown": 0.0029148046877927832, "turnover": 0.23635126737174944, "total_cost": 1429873.5261081695, "n_steps": 4, "llm_cost_usd": 0.05472040000000001, "avg_latency_s": 30.361436735001917, "max_latency_s": 30.361436735001917, "timeout_rate": 0.0, "node_errors_total": 0, "avg_debate_rounds": 2.0, "parse_failure_rate": 0.0, "n_decisions": 1}}, "ppo": {"portfolio_curve": [{"date": "2025-05-05", "value": 1000000000}, {"date": "2025-05-08", "value": 1022772317}, {"date": "2025-05-13", "value": 1050305779}, {"date": "2025-05-16", "value": 1070123017}, {"date": "2025-05-21", "value": 1054081230}, {"date": "2025-05-26", "value": 1048216025}, {"date": "2025-05-29", "value": 1041083466}, {"date": "2025-06-03", "value": 1043791649}, {"date": "2025-06-06", "value": 1022438896}, {"date": "2025-06-11", "value": 1030910100}, {"date": "2025-06-16", "value": 1030556501}, {"date": "2025-06-19", "value": 1030556501}, {"date": "2025-06-24", "value": 1061718643}, {"date": "2025-06-27", "value": 1066286548}, {"date": "2025-07-02", "value": 1075520490}, {"date": "2025-07-07", "value": 1078486406}, {"date": "2025-07-10", "value": 1124743206}, {"date": "2025-07-15", "value": 1134972034}, {"date": "2025-07-18", "value": 1138546184}, {"date": "2025-07-23", "value": 1150416522}, {"date": "2025-07-28", "value": 1162665965}, {"date": "2025-07-31", "value": 1074000727}, {"date": "2025-08-05", "value": 1129475819}, {"date": "2025-08-08", "value": 1122502229}, {"date": "2025-08-13", "value": 1118155490}, {"date": "2025-08-18", "value": 1087260701}, {"date": "2025-08-21", "value": 1082731567}, {"date": "2025-08-26", "value": 1078760469}, {"date": "2025-08-29", "value": 1072589272}, {"date": "2025-09-05", "value": 1083194173}, {"date": "2025-09-10", "value": 1063658761}, {"date": "2025-09-15", "value": 1122264855}, {"date": "2025-09-18", "value": 1131195294}, {"date": "2025-09-23", "value": 1095955043}, {"date": "2025-09-26", "value": 1084380232}, {"date": "2025-10-01", "value": 1074459929}, {"date": "2025-10-06", "value": 1108870420}, {"date": "2025-10-09", "value": 1096623908}, {"date": "2025-10-14", "value": 1074207850}, {"date": "2025-10-17", "value": 1050138663}, {"date": "2025-10-22", "value": 999481562}, {"date": "2025-10-27", "value": 1002552295}, {"date": "2025-10-30", "value": 1012206935}, {"date": "2025-11-04", "value": 1014901412}, {"date": "2025-11-07", "value": 1020214998}, {"date": "2025-11-12", "value": 1059181412}, {"date": "2025-11-17", "value": 1105000620}, {"date": "2025-11-20", "value": 1085142212}, {"date": "2025-11-25", "value": 1118793933}, {"date": "2025-11-28", "value": 1140118164}, {"date": "2025-12-03", "value": 1162694255}, {"date": "2025-12-08", "value": 1211973946}, {"date": "2025-12-11", "value": 1189304491}, {"date": "2025-12-16", "value": 1168529204}, {"date": "2025-12-19", "value": 1178556582}, {"date": "2025-12-24", "value": 1171331040}, {"date": "2025-12-29", "value": 1180653219}, {"date": "2026-01-05", "value": 1187024371}, {"date": "2026-01-08", "value": 1206889454}, {"date": "2026-01-13", "value": 1229000965}, {"date": "2026-01-16", "value": 1287551478}, {"date": "2026-01-21", "value": 1295987198}, {"date": "2026-01-26", "value": 1259123787}, {"date": "2026-01-29", "value": 1279981266}, {"date": "2026-02-03", "value": 1301874663}, {"date": "2026-02-06", "value": 1234823225}, {"date": "2026-02-11", "value": 1232241242}, {"date": "2026-02-23", "value": 1263372505}, {"date": "2026-02-26", "value": 1297058660}, {"date": "2026-03-03", "value": 1231934251}, {"date": "2026-03-06", "value": 1183613596}, {"date": "2026-03-11", "value": 1176696968}, {"date": "2026-03-16", "value": 1144093920}, {"date": "2026-03-19", "value": 1132326822}, {"date": "2026-03-24", "value": 1114970419}, {"date": "2026-03-27", "value": 1126928915}, {"date": "2026-04-01", "value": 1138925151}, {"date": "2026-04-06", "value": 1124257089}, {"date": "2026-04-09", "value": 1174952069}, {"date": "2026-04-14", "value": 1234672837}, {"date": "2026-04-17", "value": 1315369603}, {"date": "2026-04-22", "value": 1369575497}, {"date": "2026-04-28", "value": 1427372202}, {"date": "2026-04-29", "value": 1402891366}], "metrics": {"cumulative_return": 0.4028913660742228, "sharpe": 1.2583303258297565, "sortino": 1.774104794149543, "max_drawdown": 0.17593273336641807, "turnover": 0.17626260456564685, "total_cost": 97246908.721428, "n_steps": 247}}, "random": {"portfolio_curve": [{"date": "2025-05-05", "value": 1000000000}, {"date": "2025-05-08", "value": 1068603302}, {"date": "2025-05-13", "value": 1084219644}, {"date": "2025-05-16", "value": 1074731809}, {"date": "2025-05-21", "value": 1091636723}, {"date": "2025-05-26", "value": 1081937814}, {"date": "2025-05-29", "value": 1072025031}, {"date": "2025-06-03", "value": 1070161339}, {"date": "2025-06-06", "value": 1069611508}, {"date": "2025-06-11", "value": 1074745702}, {"date": "2025-06-16", "value": 1100142420}, {"date": "2025-06-19", "value": 1095335804}, {"date": "2025-06-24", "value": 1089009436}, {"date": "2025-06-27", "value": 1093679934}, {"date": "2025-07-02", "value": 1089525339}, {"date": "2025-07-07", "value": 1082151773}, {"date": "2025-07-10", "value": 1110761115}, {"date": "2025-07-15", "value": 1113578088}, {"date": "2025-07-18", "value": 1126331328}, {"date": "2025-07-23", "value": 1138261921}, {"date": "2025-07-28", "value": 1157895944}, {"date": "2025-07-31", "value": 1095204552}, {"date": "2025-08-05", "value": 1145675104}, {"date": "2025-08-08", "value": 1144451732}, {"date": "2025-08-13", "value": 1138540546}, {"date": "2025-08-18", "value": 1122176682}, {"date": "2025-08-21", "value": 1104416401}, {"date": "2025-08-26", "value": 1085120982}, {"date": "2025-08-29", "value": 1064587064}, {"date": "2025-09-05", "value": 1042949184}, {"date": "2025-09-10", "value": 1017043055}, {"date": "2025-09-15", "value": 1054521142}, {"date": "2025-09-18", "value": 1053621414}, {"date": "2025-09-23", "value": 1005770469}, {"date": "2025-09-26", "value": 1064702504}, {"date": "2025-10-01", "value": 1066453952}, {"date": "2025-10-06", "value": 1090374755}, {"date": "2025-10-09", "value": 1065555454}, {"date": "2025-10-14", "value": 1041102302}, {"date": "2025-10-17", "value": 993945627}, {"date": "2025-10-22", "value": 973781319}, {"date": "2025-10-27", "value": 957914023}, {"date": "2025-10-30", "value": 950390111}, {"date": "2025-11-04", "value": 903488039}, {"date": "2025-11-07", "value": 885454701}, {"date": "2025-11-12", "value": 911865040}, {"date": "2025-11-17", "value": 925099945}, {"date": "2025-11-20", "value": 915062179}, {"date": "2025-11-25", "value": 910909703}, {"date": "2025-11-28", "value": 911462065}, {"date": "2025-12-03", "value": 918940493}, {"date": "2025-12-08", "value": 981899318}, {"date": "2025-12-11", "value": 974071591}, {"date": "2025-12-16", "value": 971523493}, {"date": "2025-12-19", "value": 968215063}, {"date": "2025-12-24", "value": 968512049}, {"date": "2025-12-29", "value": 968970583}, {"date": "2026-01-05", "value": 985272429}, {"date": "2026-01-08", "value": 1018676376}, {"date": "2026-01-13", "value": 1070438980}, {"date": "2026-01-16", "value": 1098878530}, {"date": "2026-01-21", "value": 1072050098}, {"date": "2026-01-26", "value": 1045805684}, {"date": "2026-01-29", "value": 1025970121}, {"date": "2026-02-03", "value": 1019047011}, {"date": "2026-02-06", "value": 929839247}, {"date": "2026-02-11", "value": 998724828}, {"date": "2026-02-23", "value": 1003674573}, {"date": "2026-02-26", "value": 1007131864}, {"date": "2026-03-03", "value": 957171741}, {"date": "2026-03-06", "value": 952097607}, {"date": "2026-03-11", "value": 931618046}, {"date": "2026-03-16", "value": 908450523}, {"date": "2026-03-19", "value": 889118006}, {"date": "2026-03-24", "value": 854263740}, {"date": "2026-03-27", "value": 870134585}, {"date": "2026-04-01", "value": 877219424}, {"date": "2026-04-06", "value": 857545709}, {"date": "2026-04-09", "value": 875778038}, {"date": "2026-04-14", "value": 898829457}, {"date": "2026-04-17", "value": 893337347}, {"date": "2026-04-22", "value": 904755261}, {"date": "2026-04-28", "value": 915244887}, {"date": "2026-04-29", "value": 896824572}], "metrics": {"cumulative_return": -0.10317542765767684, "sharpe": -0.4537772181524372, "sortino": -0.6424187297816993, "max_drawdown": 0.26735996263378314, "turnover": 1.1004367205146515, "total_cost": 548804984.1129152, "n_steps": 247}}, "single_agentic": {"portfolio_curve": [{"date": "2025-05-05", "value": 1000000000}, {"date": "2025-05-06", "value": 999608130}, {"date": "2025-05-07", "value": 1008460478}, {"date": "2025-05-08", "value": 1034401145}, {"date": "2025-05-09", "value": 1031051156}, {"date": "2025-05-12", "value": 1044075267}, {"date": "2025-05-13", "value": 1049647827}, {"date": "2025-05-14", "value": 1071516705}, {"date": "2025-05-15", "value": 1070985915}, {"date": "2025-05-16", "value": 1055434456}, {"date": "2025-05-19", "value": 1064704674}], "metrics": {"cumulative_return": 0.06470467497797316, "sharpe": 8.930259824313422, "sortino": 17.012558317974054, "max_drawdown": 0.015008864311356248, "turnover": 0.13336692546242362, "total_cost": 2096804.0004760742, "n_steps": 10, "avg_iterations_per_decision": 2.0, "hallucination_rate": 0.0, "cap_hit_rate": 0.0, "n_decisions": 2}}, "zero_shot": {"portfolio_curve": [{"date": "2025-05-05", "value": 1000000000}, {"date": "2025-05-06", "value": 1000674964}, {"date": "2025-05-07", "value": 1014166315}, {"date": "2025-05-08", "value": 1047299570}, {"date": "2025-05-09", "value": 1043578851}, {"date": "2025-05-12", "value": 1062338579}, {"date": "2025-05-13", "value": 1067719886}, {"date": "2025-05-14", "value": 1088313540}, {"date": "2025-05-15", "value": 1087774781}, {"date": "2025-05-16", "value": 1073225689}, {"date": "2025-05-19", "value": 1086877500}], "metrics": {"cumulative_return": 0.0868775001160591, "sharpe": 10.51718719975856, "sortino": 23.89221468633796, "max_drawdown": 0.013863514536329204, "turnover": 0.14661213556452243, "total_cost": 2359422.710470104, "n_steps": 10}}};
+
+const COLORS = {
+  buy_and_hold:   "#9ca3af",
+  equal_weight:   "#6b7280",
+  random:         "#d1d5db",
+  ddpg:           "#3b82f6",
+  ppo:            "#0ea5e9",
+  zero_shot:      "#f59e0b",
+  single_agentic: "#ef4444",
+  multi_agent:    "#dc2626",
+};
+const BASELINES = new Set(["buy_and_hold","equal_weight","random"]);
+const isBaseline = n => BASELINES.has(n);
+
+const fmtPct = (v, d=1) => (v>=0?"+":"") + (v*100).toFixed(d) + "%";
+const fmtVND = v => {
+  const a = Math.abs(v);
+  if (a >= 1e9) return (v/1e9).toFixed(2) + "B ₫";
+  if (a >= 1e6) return (v/1e6).toFixed(2) + "M ₫";
+  if (a >= 1e3) return (v/1e3).toFixed(0) + "K ₫";
+  return v.toFixed(0) + " ₫";
+};
+const fmtDec = (v, d=2) => Number(v).toFixed(d);
+
+const allNames = Object.keys(DATA).sort();
+const visible = new Set(allNames);
+
+// ---- TOGGLES ----
+const togglesEl = document.getElementById("toggles");
+function renderToggles(){
+  togglesEl.innerHTML = "";
+  for (const name of allNames) {
+    const on = visible.has(name);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "px-3 py-1 rounded-full text-sm border transition flex items-center gap-2 " +
+                    (on ? "bg-white" : "bg-gray-100 opacity-50");
+    btn.style.borderColor = COLORS[name];
+    btn.innerHTML = `<span class="inline-block w-2 h-2 rounded-full" style="background:${COLORS[name]}"></span>${name}`;
+    btn.onclick = () => {
+      if (visible.has(name)) visible.delete(name); else visible.add(name);
+      renderToggles(); updateChart(); renderTable();
+    };
+    togglesEl.appendChild(btn);
+  }
+}
+
+// ---- CHART ----
+let chart;
+function makeChart(){
+  const datasets = allNames.map(name => ({
+    label: name,
+    data: DATA[name].portfolio_curve.map(pt => ({x: pt.date, y: pt.value})),
+    borderColor: COLORS[name],
+    backgroundColor: COLORS[name] + "20",
+    borderWidth: 2,
+    borderDash: isBaseline(name) ? [5,5] : [],
+    pointRadius: 0,
+    pointHoverRadius: 4,
+    tension: 0.1,
+    spanGaps: true,
+    hidden: !visible.has(name),
+  }));
+  const ctx = document.getElementById("chart").getContext("2d");
+  chart = new Chart(ctx, {
+    type: "line",
+    data: { datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: "nearest", axis: "x", intersect: false },
+      scales: {
+        x: { type: "time", time: { unit: "month", tooltipFormat: "yyyy-MM-dd" },
+             ticks: { font: { size: 11 } } },
+        y: { ticks: { callback: v => fmtVND(v), font: { size: 11 } } },
+      },
+      plugins: {
+        legend: { position: "bottom", labels: { boxWidth: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtVND(ctx.parsed.y)}` } },
+      },
+    },
+  });
+}
+function updateChart(){
+  chart.data.datasets.forEach(ds => { ds.hidden = !visible.has(ds.label); });
+  chart.update("none");
+}
+
+// ---- TABLE ----
+let sortKey = "cumulative_return";
+let sortDesc = true;
+function renderTable(){
+  const tbody = document.getElementById("tbody");
+  const rows = allNames.filter(n => visible.has(n)).map(name => ({
+    name, m: DATA[name].metrics,
+  }));
+  rows.sort((a,b) => {
+    const av = a.m[sortKey] ?? 0, bv = b.m[sortKey] ?? 0;
+    return sortDesc ? bv-av : av-bv;
+  });
+  tbody.innerHTML = rows.map(({name, m}) => `
+    <tr class="hover:bg-gray-50">
+      <td class="py-2 pr-4 font-medium flex items-center gap-2">
+        <span class="inline-block w-3 h-3 rounded-sm" style="background:${COLORS[name]}"></span>${name}
+      </td>
+      <td class="py-2 pr-4 ${m.cumulative_return>=0?'text-emerald-700':'text-red-700'}">${fmtPct(m.cumulative_return)}</td>
+      <td class="py-2 pr-4">${fmtDec(m.sharpe)}</td>
+      <td class="py-2 pr-4">${fmtDec(m.sortino)}</td>
+      <td class="py-2 pr-4 text-red-700">${fmtPct(m.max_drawdown)}</td>
+      <td class="py-2 pr-4">${fmtVND(m.total_cost)}</td>
+      <td class="py-2 pr-4 text-right">${m.llm_cost_usd!==undefined ? "$"+m.llm_cost_usd.toFixed(2) : "—"}</td>
+      <td class="py-2 pr-4 text-right">${m.n_steps}</td>
+    </tr>`).join("");
+  // sort indicators
+  document.querySelectorAll("[data-col]").forEach(th => {
+    const ind = th.querySelector(".sort-ind");
+    ind.textContent = th.dataset.col === sortKey ? (sortDesc?"↓":"↑") : "";
+  });
+}
+document.querySelectorAll("[data-col]").forEach(th => {
+  th.onclick = () => {
+    const k = th.dataset.col;
+    if (sortKey === k) sortDesc = !sortDesc;
+    else { sortKey = k; sortDesc = true; }
+    renderTable();
+  };
+});
+
+// ---- BOOT ----
+renderToggles();
+makeChart();
+renderTable();
+</script>
+</body>
+</html>
