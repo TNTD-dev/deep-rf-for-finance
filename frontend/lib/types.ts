@@ -74,6 +74,12 @@ export interface DebateTranscript {
   transcript: DebateEntry[];
 }
 
+// PKG-S S5b: GET /debate/{agent} → list of available transcript dates.
+export interface DebateDatesResponse {
+  agent: string;
+  dates: string[]; // sorted ascending (YYYY-MM-DD)
+}
+
 // PKG-16: SSE event shape emitted by backend/routes/live.py.
 // Discriminated union — TypeScript narrows on `type`.
 

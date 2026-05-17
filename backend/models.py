@@ -70,6 +70,13 @@ class DebateTranscript(BaseModel):
     transcript: list[DebateEntry]
 
 
+class DebateDatesResponse(BaseModel):
+    """List of available transcript dates for a given agent (PKG-S S5b)."""
+
+    agent: str
+    dates: list[str]
+
+
 class HealthzResponse(BaseModel):
     status: str
     results_dir: str

@@ -6,16 +6,36 @@ Maps PKG-8 transcript schema → PRD §10 debate shape:
 Injects ``decision`` (parsed weights dict) on the final portfolio_manager
 entry when ``portfolio_manager_output`` parses cleanly. Parse failure →
 omit decision (don't crash; PKG-15 UI handles missing decision).
+
+PKG-S S5b adds ``GET /debate/{agent}`` for date-list discovery so the
+frontend can stop hardcoding ``AVAILABLE_DEBATE_DATES``.
 """
 
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request
 
-from backend.models import DebateTranscript
+from backend.models import DebateDatesResponse, DebateTranscript
 from backend.sse import extract_decision
 
 router = APIRouter()
+
+
+@router.get("/debate/{agent}", response_model=DebateDatesResponse)
+def list_debate_dates(agent: str, request: Request) -> dict:
+    """List transcript dates available on disk (PKG-S S5b).
+
+    Sorted lexicographic — YYYY-MM-DD makes that equivalent to chronological.
+    Empty list (not 404) when the dir is missing so the FE can show a
+    "run the backtest" empty state without an error banner.
+    """
+    if agent != "multi_agent":
+        raise HTTPException(400, "debate only supported for agent=multi_agent")
+    transcripts_dir = request.app.state.results_dir / agent / "transcripts"
+    if not transcripts_dir.exists():
+        return {"agent": agent, "dates": []}
+    dates = sorted(p.stem for p in transcripts_dir.glob("*.json"))
+    return {"agent": agent, "dates": dates}
 
 
 @router.get("/debate/{agent}/{date}", response_model=DebateTranscript)
