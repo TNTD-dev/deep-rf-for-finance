@@ -15,13 +15,18 @@ export function SiteNav() {
   return (
     <header className="sticky top-0 z-30 border-b border-cyan-400/15 backdrop-blur-md bg-black/60">
       <div className="container mx-auto max-w-7xl flex items-center gap-8 px-6 py-4">
-        <Link href="/" className="flex items-center gap-2 group">
+        <Link href="/" className="flex items-center gap-2.5 group">
           <LogoMark />
           <span className="hidden sm:flex flex-col leading-none">
-            <span className="font-semibold tracking-tight text-white group-hover:text-cyan-300 transition-colors">
-              Intelligence Core
+            <span
+              className="font-bold tracking-tight text-white group-hover:text-cyan-300 transition-colors"
+              style={{ fontFamily: "var(--font-grotesk)" }}
+            >
+              QuantArena
             </span>
-            <span className="label-mono text-[10px]">DRL × LLM · VN30</span>
+            <span className="label-mono text-[10px] mt-0.5">
+              8 agents · 1 benchmark · VN30
+            </span>
           </span>
         </Link>
 
@@ -53,6 +58,9 @@ export function SiteNav() {
 
 /** Hexagonal cyan logo mark — purely decorative. SVG so it scales clean. */
 function LogoMark() {
+  // Candlestick-inspired mark — three thin verticals with wicks above/below,
+  // central one cyan-pulsed. Reads as trading at a glance instead of "generic
+  // hex logo". 30×30 viewBox; pure SVG, no JS.
   return (
     <svg
       width="32"
@@ -62,20 +70,24 @@ function LogoMark() {
       aria-hidden="true"
       className="text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.55)]"
     >
-      <path
-        d="M16 2.5L27.5 9v14L16 29.5 4.5 23V9L16 2.5z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        fill="rgba(34,211,238,0.08)"
-      />
-      <path
-        d="M16 9.5L22 13v6l-6 3.5L10 19v-6l6-3.5z"
+      {/* outer frame */}
+      <rect
+        x="1.5"
+        y="1.5"
+        width="29"
+        height="29"
+        rx="6"
         stroke="currentColor"
         strokeWidth="1.2"
-        fill="none"
-        opacity="0.7"
+        fill="rgba(34,211,238,0.06)"
       />
-      <circle cx="16" cy="16" r="1.6" fill="currentColor" />
+      {/* wick + body x3 — left bearish, center bullish (filled), right bullish */}
+      <line x1="9" y1="7" x2="9" y2="25" stroke="currentColor" strokeWidth="1" opacity="0.6" />
+      <rect x="7.5" y="14" width="3" height="8" fill="none" stroke="currentColor" strokeWidth="1.2" opacity="0.7" />
+      <line x1="16" y1="5" x2="16" y2="27" stroke="currentColor" strokeWidth="1" />
+      <rect x="14.5" y="9" width="3" height="14" fill="currentColor" />
+      <line x1="23" y1="9" x2="23" y2="23" stroke="currentColor" strokeWidth="1" opacity="0.6" />
+      <rect x="21.5" y="12" width="3" height="9" fill="none" stroke="currentColor" strokeWidth="1.2" opacity="0.7" />
     </svg>
   );
 }

@@ -1,13 +1,25 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 
 import { SiteNav } from "@/components/SiteNav";
 
 import "./globals.css";
 
+// Trading-platform typography:
+//   Inter        → body, paragraphs (legible at small sizes)
+//   Space Grotesk → display + headlines (engineered, technical feel)
+//   JetBrains Mono → numbers, tickers, labels (tabular data)
+// All loaded via next/font/google so CLS is zero and they ship self-hosted.
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const grotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-grotesk",
   display: "swap",
 });
 
@@ -18,9 +30,9 @@ const jbm = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Intelligence Core — DRL vs LLM Agentic Trading on VN30",
+  title: "QuantArena — 8 Agents, 1 Benchmark · VN30",
   description:
-    "8 trading agents benchmarked on Vietnam's VN30 market: classical baselines, DDPG/PPO reinforcement learning, and zero-shot / single-agentic / multi-agent LLM systems. Replay debates, run live, compare full-period results.",
+    "Battle of the trading minds on Vietnam's VN30 market. Three classical baselines, DDPG & PPO reinforcement learning, and three LLM systems — zero-shot, single-agentic, and an 8-role multi-agent debate — benchmarked across a full 12-month out-of-sample window.",
 };
 
 export default function RootLayout({
@@ -29,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className={`dark ${inter.variable} ${jbm.variable}`}>
+    <html lang="vi" className={`dark ${inter.variable} ${grotesk.variable} ${jbm.variable}`}>
       <body className="min-h-screen flex flex-col relative">
         <SiteNav />
         <div className="relative z-10 flex-1">{children}</div>
