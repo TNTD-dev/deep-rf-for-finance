@@ -7,6 +7,8 @@ import type { DebateEntry as Entry } from "@/lib/types";
 interface Props {
   entry: Entry;
   round?: number;
+  /** Highlight this entry — the parent's DebateGraph just selected it. */
+  active?: boolean;
 }
 
 function fmtTime(iso: string | undefined | null): string {
@@ -15,12 +17,19 @@ function fmtTime(iso: string | undefined | null): string {
   return iso.slice(11, 19);
 }
 
-export function DebateEntry({ entry, round }: Props) {
+export function DebateEntry({ entry, round, active }: Props) {
   const hasDecision = entry.decision !== undefined;
   const hasContent = !!entry.content && entry.content.trim().length > 0;
 
   return (
-    <article className="rounded-md border border-cyan-400/15 bg-black/40 backdrop-blur-sm p-4 transition-colors hover:border-cyan-400/30">
+    <article
+      data-role={entry.role}
+      className={`rounded-md border bg-black/40 backdrop-blur-sm p-4 transition-all ${
+        active
+          ? "border-cyan-400/70 ring-1 ring-cyan-400/30 glow-cyan"
+          : "border-cyan-400/15 hover:border-cyan-400/30"
+      }`}
+    >
       <header className="flex flex-wrap items-center gap-3">
         <RoleBadge role={entry.role} round={round} />
         {entry.model && (

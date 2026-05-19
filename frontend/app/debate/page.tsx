@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { DatePicker } from "@/components/DatePicker";
+import { DebateGraph } from "@/components/DebateGraph";
 import { DebateStream } from "@/components/DebateStream";
 import { ScrollFade } from "@/components/ScrollFade";
 import { GlassPanel, Kicker } from "@/components/ui/glass";
@@ -118,6 +119,7 @@ function DebateInner({ date }: { date: string }) {
   const [transcript, setTranscript] = useState<DebateTranscript | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeRole, setActiveRole] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -156,5 +158,34 @@ function DebateInner({ date }: { date: string }) {
   if (!transcript) {
     return <p className="text-zinc-300">No transcript for {date}.</p>;
   }
-  return <DebateStream transcript={transcript} />;
+
+  const onSelect = (role: string) => {
+    setActiveRole(role);
+    // Smooth-scroll the matching entry into view.
+    const el = document.querySelector(`[data-role="${role}"]`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  return (
+    <div className="space-y-8">
+      <GlassPanel>
+        <div className="p-6">
+          <Kicker>Decision flow · click a role to jump</Kicker>
+          <div className="mt-5">
+            <DebateGraph
+              transcript={transcript}
+              activeRole={activeRole}
+              onSelect={onSelect}
+            />
+          </div>
+        </div>
+      </GlassPanel>
+      <div>
+        <Kicker>Transcript</Kicker>
+        <div className="mt-4">
+          <DebateStream transcript={transcript} activeRole={activeRole} />
+        </div>
+      </div>
+    </div>
+  );
 }
