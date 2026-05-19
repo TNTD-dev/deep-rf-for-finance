@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 
 import { LiveFlow } from "@/components/LiveFlow";
+import { LiveSidecar } from "@/components/LiveSidecar";
 import { RunButton } from "@/components/RunButton";
 import { ScrollFade } from "@/components/ScrollFade";
-import { SSEStream } from "@/components/SSEStream";
 import { GlassPanel, Kicker } from "@/components/ui/glass";
 import { streamLive } from "@/lib/sse";
 import type { LiveEvent } from "@/lib/types";
@@ -41,67 +41,48 @@ export default function LivePage() {
   };
 
   return (
-    <main className="container mx-auto max-w-5xl px-6 pt-10 pb-16 space-y-8">
+    <main className="container mx-auto max-w-7xl px-6 pt-8 pb-16 space-y-6">
+      {/* Header band — title left, run button right (always reachable). */}
       <ScrollFade>
-        <header className="space-y-3">
-          <Kicker>Live · multi-agent</Kicker>
-          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white">
-            Watch 8 roles deliberate
-          </h1>
-          <p className="text-sm text-zinc-400 max-w-2xl">
-            Click run. The multi-agent system streams{" "}
-            <code className="rounded bg-cyan-400/10 px-1.5 py-0.5 font-mono text-[11px] text-cyan-300">
-              agent_start
-            </code>
-            ,{" "}
-            <code className="rounded bg-cyan-400/10 px-1.5 py-0.5 font-mono text-[11px] text-cyan-300">
-              agent_complete
-            </code>
-            , and{" "}
-            <code className="rounded bg-cyan-400/10 px-1.5 py-0.5 font-mono text-[11px] text-cyan-300">
-              decision
-            </code>{" "}
-            events via SSE — 8 role cards light up sequentially, then the
-            portfolio_manager emits final weights.
-          </p>
+        <header className="flex flex-wrap items-end justify-between gap-4">
+          <div className="space-y-2">
+            <Kicker>Live · multi-agent</Kicker>
+            <h1
+              className="text-3xl sm:text-4xl font-bold tracking-tight text-white"
+              style={{ fontFamily: "var(--font-grotesk)" }}
+            >
+              Watch 8 roles deliberate
+            </h1>
+            <p className="text-xs text-zinc-500 font-mono max-w-xl">
+              SSE stream · ≈ $0.05 per run · 60s timeout · 8 roles fire sequentially
+            </p>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            <RunButton state={state} onClick={start} />
+            <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-[0.12em]">
+              real OpenAI call
+            </p>
+          </div>
         </header>
       </ScrollFade>
 
-      <ScrollFade delayMs={80}>
-        <GlassPanel glow="soft">
-          <div className="p-6 space-y-3">
-            <Kicker>Controls</Kicker>
-            <RunButton state={state} onClick={start} />
-            <p className="text-xs text-zinc-500 font-mono">
-              ≈{" "}
-              <span className="font-semibold text-cyan-300">$0.05</span> per run
-              (real OpenAI call) · 60s timeout · 8 roles fire sequentially
-            </p>
-          </div>
-        </GlassPanel>
-      </ScrollFade>
+      {/* Split-pane: pipeline canvas on the left, status sidecar on the right. */}
+      <div className="grid gap-6 lg:grid-cols-[1fr_30rem]">
+        <div className="space-y-5">
+          <ScrollFade>
+            <GlassPanel>
+              <div className="p-6">
+                <Kicker>Pipeline · 8 roles</Kicker>
+                <div className="mt-5">
+                  <LiveFlow events={events} />
+                </div>
+              </div>
+            </GlassPanel>
+          </ScrollFade>
+        </div>
 
-      <ScrollFade delayMs={140}>
-        <GlassPanel>
-          <div className="p-6">
-            <Kicker>Pipeline · 8 roles</Kicker>
-            <div className="mt-5">
-              <LiveFlow events={events} />
-            </div>
-          </div>
-        </GlassPanel>
-      </ScrollFade>
-
-      <ScrollFade delayMs={200}>
-        <GlassPanel>
-          <div className="p-6">
-            <Kicker>Event log</Kicker>
-            <div className="mt-4">
-              <SSEStream events={events} />
-            </div>
-          </div>
-        </GlassPanel>
-      </ScrollFade>
+        <LiveSidecar events={events} state={state} />
+      </div>
     </main>
   );
 }
