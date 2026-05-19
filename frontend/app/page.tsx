@@ -3,41 +3,51 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { OrbitalHero } from "@/components/OrbitalHero";
 import { ScrollFade } from "@/components/ScrollFade";
 import { GlassPanel, Kicker } from "@/components/ui/glass";
 import { BACKEND_URL, getAgents, getBacktest } from "@/lib/api";
 import { agentCategory, colorFor } from "@/lib/colors";
 import type { BacktestPayload } from "@/lib/types";
 
-// Headline numbers Người 1 cites in the report. Hard-coded so the landing
-// page renders immediately even when the backend is cold or unreachable.
+// Headline numbers baked in so the landing renders instantly even when the
+// backend is cold or unreachable. These match the PKG-S full-window snapshot.
 const HEADLINE_STATS: { label: string; value: string; hint: string }[] = [
   { label: "Agents benchmarked", value: "8", hint: "3 baselines · 2 RL · 3 LLM" },
-  { label: "Test window", value: "248", hint: "trading sessions 2025-05 → 2026-04" },
+  { label: "Test window", value: "248", hint: "trading sessions · 2025-05 → 2026-04" },
   { label: "Multi-agent return", value: "+50.18%", hint: "Sharpe 2.19 · 51 weekly decisions" },
   { label: "LLM cost", value: "$3.21", hint: "full backtest, gpt-4o + gpt-4o-mini" },
 ];
 
-const FEATURES: { title: string; body: string; tag: string }[] = [
+const FEATURES: {
+  title: string;
+  body: string;
+  tag: string;
+  icon: React.ReactNode;
+}[] = [
   {
-    tag: "01 · Reinforcement Learning",
+    tag: "01 · Reinforcement",
     title: "DDPG + PPO on a custom VN env",
     body: "Stable-baselines3 trained on 5 years of VN30 prices with HOSE rules baked in: ±7% price band, 100-share lots, asymmetric 0.15% / 0.25% fees. PPO is the headline RL agent at +40.29%.",
+    icon: <IconRl />,
   },
   {
     tag: "02 · LLM Trading",
     title: "Zero-shot → agentic → multi-agent",
-    body: "Three increasingly capable LLM patterns. Multi-agent runs an 8-role LangGraph: three analysts, a bull/bear debate, trader, risk manager, portfolio manager. Decisions are weekly, replayable, cached.",
+    body: "Three increasingly capable LLM patterns. Multi-agent runs an 8-role LangGraph: three analysts, a bull/bear debate, trader, risk manager, portfolio manager. Weekly cadence, replayable, cached.",
+    icon: <IconLlm />,
   },
   {
     tag: "03 · Live Mode",
     title: "Watch agents reason in real time",
-    body: "Click run. The multi-agent system streams agent_start / agent_complete / decision events via SSE — 8 role cards light up sequentially, ~30-60 seconds total, ~$0.05 per click. No replay, no recording.",
+    body: "Click run. The multi-agent system streams agent_start / agent_complete / decision events via SSE — 8 role cards light up sequentially, ~30-60 seconds total, ~$0.05 per click.",
+    icon: <IconLive />,
   },
   {
     tag: "04 · Honest Comparison",
     title: "Same env, same fees, same window",
-    body: "Every agent runs through the same gymnasium env. No lookahead — news on day D is only visible from D+1 close. Person 2 verifies the invariants on every PR. Reproducible: same seed → identical trajectory.",
+    body: "Every agent runs through the same gymnasium env. No lookahead — news on day D is only visible from D+1 close. Reproducible: same seed → identical trajectory.",
+    icon: <IconHonest />,
   },
 ];
 
@@ -82,9 +92,11 @@ export default function LandingPage() {
   return (
     <main className="relative">
       <Hero />
+      <TickerBar />
       <Stats />
       <Leaderboard rows={rows} warm={warm} />
       <Features />
+      <Methodology />
       <CallToAction />
       <Footer />
     </main>
@@ -98,59 +110,85 @@ export default function LandingPage() {
 function Hero() {
   return (
     <section className="relative overflow-hidden">
-      {/* Soft cyan orb behind hero */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-[-20%] h-[600px] w-[900px] -translate-x-1/2 rounded-full blur-3xl"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(34,211,238,0.18), transparent 60%)",
-        }}
-      />
-      <div className="container mx-auto max-w-6xl px-6 pt-16 pb-20 sm:pt-24 sm:pb-28 relative">
-        <ScrollFade>
-          <Kicker>Intelligence Core · Nexora Systems</Kicker>
-        </ScrollFade>
-        <ScrollFade delayMs={80}>
-          <h1 className="display-xl mt-6 text-white max-w-4xl">
-            Can <span className="text-cyan-300">LLM agents</span> trade as well
-            as deep <span className="text-cyan-300">reinforcement learning</span>?
-          </h1>
-        </ScrollFade>
-        <ScrollFade delayMs={160}>
-          <p className="mt-7 max-w-2xl text-base sm:text-lg leading-relaxed text-zinc-400">
-            Eight agents — classical baselines, DDPG &amp; PPO,
-            zero-shot LLM, single-agentic, and an 8-role multi-agent debate
-            system — all benchmarked head-to-head on the Vietnamese VN30
-            market across a full 12-month out-of-sample window.
-          </p>
-        </ScrollFade>
-        <ScrollFade delayMs={240}>
-          <div className="mt-10 flex flex-wrap items-center gap-3">
-            <Link
-              href="/dashboard"
-              className="group inline-flex items-center gap-2 rounded-md bg-cyan-400 px-5 py-3 font-mono text-xs font-semibold uppercase tracking-[0.14em] text-black transition-all hover:bg-cyan-300 glow-cyan"
-            >
-              Open Dashboard
-              <Arrow />
-            </Link>
-            <Link
-              href="/live"
-              className="inline-flex items-center gap-2 rounded-md border border-cyan-400/30 px-5 py-3 font-mono text-xs font-semibold uppercase tracking-[0.14em] text-cyan-200 transition-all hover:border-cyan-400 hover:text-cyan-100 hover:bg-cyan-400/5"
-            >
-              Run multi-agent live
-              <Arrow />
-            </Link>
-            <Link
-              href="/debate"
-              className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 hover:text-cyan-300 link-glow px-2 py-3"
-            >
-              · Replay a debate
-            </Link>
+      <div className="container mx-auto max-w-7xl px-6 pt-12 pb-12 sm:pt-16 sm:pb-16 relative">
+        <div className="grid lg:grid-cols-[1.1fr_1fr] gap-10 items-center">
+          {/* LEFT — copy + CTAs */}
+          <div>
+            <ScrollFade>
+              <Kicker>QuantArena · DRL × Agentic LLM · VN30</Kicker>
+            </ScrollFade>
+            <ScrollFade delayMs={80}>
+              <h1
+                className="display-xl mt-6 text-white"
+                style={{ fontFamily: "var(--font-grotesk)" }}
+              >
+                Battle of the{" "}
+                <span className="text-cyan-300">trading minds</span>.
+              </h1>
+            </ScrollFade>
+            <ScrollFade delayMs={160}>
+              <p className="mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-zinc-400">
+                Eight agents head-to-head on Vietnam's VN30 market — classical
+                baselines, deep reinforcement learning, and three flavors of
+                LLM trading culminating in an 8-role multi-agent debate.{" "}
+                <span className="text-zinc-200">
+                  Same env. Same fees. Same window.
+                </span>
+              </p>
+            </ScrollFade>
+            <ScrollFade delayMs={240}>
+              <div className="mt-9 flex flex-wrap items-center gap-3">
+                <Link
+                  href="/dashboard"
+                  className="group inline-flex items-center gap-2 rounded-md bg-cyan-400 px-6 py-3.5 font-mono text-xs font-semibold uppercase tracking-[0.14em] text-black transition-all hover:bg-cyan-300 glow-cyan"
+                >
+                  Open Dashboard
+                  <Arrow />
+                </Link>
+                <Link
+                  href="/live"
+                  className="inline-flex items-center gap-2 rounded-md border border-cyan-400/35 bg-cyan-400/5 px-6 py-3.5 font-mono text-xs font-semibold uppercase tracking-[0.14em] text-cyan-200 transition-all hover:border-cyan-400 hover:text-cyan-100 hover:bg-cyan-400/10"
+                >
+                  Run multi-agent live
+                  <Arrow />
+                </Link>
+                <Link
+                  href="/debate"
+                  className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500 hover:text-cyan-300 link-glow px-2 py-3.5"
+                >
+                  · Replay a debate
+                </Link>
+              </div>
+            </ScrollFade>
+
+            {/* Trust-line: tech bar */}
+            <ScrollFade delayMs={320}>
+              <div className="mt-12 flex flex-wrap gap-x-6 gap-y-2 items-center text-[11px] text-zinc-500 font-mono uppercase tracking-[0.1em]">
+                <span>Powered by</span>
+                <TechChip>FastAPI</TechChip>
+                <TechChip>LangGraph</TechChip>
+                <TechChip>stable-baselines3</TechChip>
+                <TechChip>gpt-4o</TechChip>
+                <TechChip>vnstock</TechChip>
+              </div>
+            </ScrollFade>
           </div>
-        </ScrollFade>
+
+          {/* RIGHT — orbital visualization */}
+          <ScrollFade delayMs={120}>
+            <OrbitalHero />
+          </ScrollFade>
+        </div>
       </div>
     </section>
+  );
+}
+
+function TechChip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded border border-cyan-400/15 bg-cyan-400/5 px-2 py-0.5 text-cyan-300/80">
+      {children}
+    </span>
   );
 }
 
@@ -176,21 +214,81 @@ function Arrow() {
 }
 
 /* ────────────────────────────────────────────────────────────────────────── */
+/*  TICKER BAR — continuously scrolling ribbon                                 */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function TickerBar() {
+  const items: { ticker: string; pct: string; pos: boolean }[] = [
+    { ticker: "VCB", pct: "+1.24%", pos: true },
+    { ticker: "FPT", pct: "+0.87%", pos: true },
+    { ticker: "HPG", pct: "-0.32%", pos: false },
+    { ticker: "VIC", pct: "+2.05%", pos: true },
+    { ticker: "VNM", pct: "-0.18%", pos: false },
+    { ticker: "VN30", pct: "+0.74%", pos: true },
+  ];
+  // Repeat the array so the CSS marquee has enough content to scroll without
+  // gaps. Two copies = seamless loop when translated -50%.
+  const reel = [...items, ...items, ...items, ...items];
+
+  return (
+    <div className="border-y border-cyan-400/15 bg-black/40 backdrop-blur-sm overflow-hidden">
+      <div className="ticker-track flex items-center gap-12 py-3 whitespace-nowrap font-mono text-[12px]">
+        {reel.map((it, i) => (
+          <span key={i} className="inline-flex items-center gap-2 text-zinc-400">
+            <span className="text-zinc-100">{it.ticker}</span>
+            <span className={it.pos ? "text-cyan-300" : "text-rose-400"}>
+              {it.pct}
+            </span>
+            <span className="text-zinc-700">•</span>
+          </span>
+        ))}
+      </div>
+      <style jsx>{`
+        .ticker-track {
+          animation: ticker 40s linear infinite;
+          width: max-content;
+        }
+        @keyframes ticker {
+          to {
+            transform: translateX(-50%);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .ticker-track {
+            animation: none;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
 /*  STATS                                                                      */
 /* ────────────────────────────────────────────────────────────────────────── */
 
 function Stats() {
   return (
-    <section className="border-y border-cyan-400/10 bg-black/30 backdrop-blur-sm">
-      <div className="container mx-auto max-w-6xl px-6 py-10 grid grid-cols-2 lg:grid-cols-4 gap-px bg-cyan-400/10">
+    <section className="container mx-auto max-w-7xl px-6 py-16">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-cyan-400/15 rounded-lg overflow-hidden">
         {HEADLINE_STATS.map((s, i) => (
-          <ScrollFade key={s.label} delayMs={i * 60} className="bg-black/70">
-            <div className="px-5 py-6">
+          <ScrollFade
+            key={s.label}
+            delayMs={i * 70}
+            className="bg-gradient-to-br from-cyan-400/5 to-transparent backdrop-blur-sm"
+          >
+            <div className="px-6 py-7 hover:bg-cyan-400/8 transition-colors h-full">
               <p className="label-mono">{s.label}</p>
-              <p className="mt-3 text-3xl sm:text-4xl font-semibold tracking-tight text-white">
+              <p
+                className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight text-white tabular-nums"
+                style={{
+                  fontFamily: "var(--font-grotesk)",
+                  textShadow: "0 0 24px rgba(34,211,238,0.25)",
+                }}
+              >
                 {s.value}
               </p>
-              <p className="mt-2 text-xs text-zinc-500">{s.hint}</p>
+              <p className="mt-2 text-xs text-zinc-500 font-mono">{s.hint}</p>
             </div>
           </ScrollFade>
         ))}
@@ -211,10 +309,13 @@ function Leaderboard({
   warm: "checking" | "online" | "offline";
 }) {
   return (
-    <section className="container mx-auto max-w-6xl px-6 py-20">
+    <section className="container mx-auto max-w-7xl px-6 py-20">
       <ScrollFade>
         <Kicker>Leaderboard · full test window</Kicker>
-        <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight text-white">
+        <h2
+          className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight text-white"
+          style={{ fontFamily: "var(--font-grotesk)" }}
+        >
           Eight agents, one benchmark
         </h2>
         <p className="mt-3 text-sm text-zinc-400 max-w-xl">
@@ -222,7 +323,7 @@ function Leaderboard({
           <code className="rounded bg-cyan-400/10 px-1.5 py-0.5 font-mono text-[11px] text-cyan-300">
             {BACKEND_URL}
           </code>
-          . If the backend is cold, headline numbers above stay valid — they're
+          . If the backend is cold, the numbers above stay valid — they're
           baked into the page.
         </p>
       </ScrollFade>
@@ -253,12 +354,17 @@ function Leaderboard({
                   key={r.name}
                   className="border-b border-cyan-400/5 last:border-0 hover:bg-cyan-400/5 transition-colors"
                 >
-                  <td className="px-5 py-3 text-zinc-500">{i + 1}</td>
+                  <td className="px-5 py-3 text-zinc-500 tabular-nums">
+                    {String(i + 1).padStart(2, "0")}
+                  </td>
                   <td className="px-5 py-3">
-                    <span className="inline-flex items-center gap-2">
+                    <span className="inline-flex items-center gap-2.5">
                       <span
-                        className="h-2 w-2 rounded-full"
-                        style={{ background: colorFor(r.name) }}
+                        className="h-2.5 w-2.5 rounded-full"
+                        style={{
+                          background: colorFor(r.name),
+                          boxShadow: `0 0 8px ${colorFor(r.name)}`,
+                        }}
                       />
                       <span className="text-zinc-100">{r.name}</span>
                     </span>
@@ -271,6 +377,7 @@ function Leaderboard({
                       r.cum >= 0 ? "text-cyan-300" : "text-rose-400"
                     }`}
                   >
+                    {r.cum >= 0 ? "+" : ""}
                     {(r.cum * 100).toFixed(2)}%
                   </td>
                   <td className="px-5 py-3 text-right tabular-nums text-zinc-200">
@@ -291,7 +398,7 @@ function Leaderboard({
               ))}
             </tbody>
           </table>
-          <p className="px-5 py-3 text-xs text-zinc-500">
+          <p className="px-5 py-3 text-xs text-zinc-500 font-mono">
             {warm === "checking" && "Polling backend…"}
             {warm === "online" && `Live · backend reachable at ${BACKEND_URL}`}
             {warm === "offline" &&
@@ -303,9 +410,6 @@ function Leaderboard({
   );
 }
 
-// Static fallback so the leaderboard never renders empty even if the backend
-// is cold. Matches PKG-S full-window results (multi_agent: 51 LLM decisions,
-// 247 env steps; LLM smoke at 10 sessions).
 const PLACEHOLDER_ROWS: AgentRow[] = [
   { name: "buy_and_hold", cum: 1.0318, sharpe: 2.75, steps: 247 },
   { name: "equal_weight", cum: 0.5307, sharpe: 2.14, steps: 247 },
@@ -323,10 +427,13 @@ const PLACEHOLDER_ROWS: AgentRow[] = [
 
 function Features() {
   return (
-    <section className="container mx-auto max-w-6xl px-6 py-20">
+    <section className="container mx-auto max-w-7xl px-6 py-20">
       <ScrollFade>
         <Kicker>System overview</Kicker>
-        <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight text-white">
+        <h2
+          className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight text-white"
+          style={{ fontFamily: "var(--font-grotesk)" }}
+        >
           Four layers, one comparison
         </h2>
       </ScrollFade>
@@ -334,17 +441,87 @@ function Features() {
       <div className="mt-12 grid gap-6 sm:grid-cols-2">
         {FEATURES.map((f, i) => (
           <ScrollFade key={f.title} delayMs={i * 80}>
-            <GlassPanel className="h-full">
-              <div className="p-7">
-                <p className="label-mono">{f.tag}</p>
-                <h3 className="mt-4 text-xl font-semibold text-white">
-                  {f.title}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+            <GlassPanel className="h-full group">
+              <div className="p-7 sm:p-8">
+                <div className="flex items-start gap-4">
+                  <div className="shrink-0 rounded-md border border-cyan-400/30 bg-cyan-400/10 p-3 text-cyan-300 group-hover:text-cyan-200 group-hover:border-cyan-400/60 transition-colors">
+                    {f.icon}
+                  </div>
+                  <div>
+                    <p className="label-mono">{f.tag}</p>
+                    <h3
+                      className="mt-2 text-xl font-bold text-white"
+                      style={{ fontFamily: "var(--font-grotesk)" }}
+                    >
+                      {f.title}
+                    </h3>
+                  </div>
+                </div>
+                <p className="mt-5 text-sm leading-relaxed text-zinc-400">
                   {f.body}
                 </p>
               </div>
             </GlassPanel>
+          </ScrollFade>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  METHODOLOGY — quick explainer with numbered steps                          */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function Methodology() {
+  const steps = [
+    {
+      n: "01",
+      title: "Train",
+      body: "5 years of VN30 prices (2019-01 → 2024-12). DDPG + PPO via stable-baselines3 on a custom gymnasium env that enforces HOSE rules. LLM agents use gpt-4o + gpt-4o-mini, locked at the Oct 2023 cutoff so the test window stays out-of-distribution.",
+    },
+    {
+      n: "02",
+      title: "Backtest",
+      body: "Test window 2025-05 → 2026-04, 248 daily sessions on five tickers (VCB, FPT, HPG, VIC, VNM). RL decides daily; LLM agents decide weekly to control cost. Decisions emit target weights; the env handles ±7% clamping, 100-share lot rounding, and asymmetric 0.15% / 0.25% fees.",
+    },
+    {
+      n: "03",
+      title: "Compare",
+      body: "Every agent produces a portfolio curve, holdings parquet, and metrics JSON. metrics_table.csv aggregates all 8 into one wide row. Same seed → identical trajectory. Multi-agent transcripts are cached per (date, ticker_set, prompt_hash) so reruns are free.",
+    },
+  ];
+  return (
+    <section className="container mx-auto max-w-7xl px-6 py-20">
+      <ScrollFade>
+        <Kicker>How it works</Kicker>
+        <h2
+          className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight text-white"
+          style={{ fontFamily: "var(--font-grotesk)" }}
+        >
+          Three steps, no hand-waving
+        </h2>
+      </ScrollFade>
+      <div className="mt-12 grid gap-6 md:grid-cols-3">
+        {steps.map((s, i) => (
+          <ScrollFade key={s.n} delayMs={i * 100}>
+            <div className="relative h-full rounded-lg border border-cyan-400/15 bg-gradient-to-b from-cyan-400/[0.04] to-transparent p-7">
+              <span
+                className="absolute -top-3 left-7 rounded bg-black px-2 py-1 font-mono text-xs uppercase tracking-[0.18em] text-cyan-300 ring-1 ring-cyan-400/30"
+                style={{ boxShadow: "0 0 12px rgba(34,211,238,0.3)" }}
+              >
+                {s.n}
+              </span>
+              <h3
+                className="mt-3 text-2xl font-bold text-white"
+                style={{ fontFamily: "var(--font-grotesk)" }}
+              >
+                {s.title}
+              </h3>
+              <p className="mt-4 text-sm leading-relaxed text-zinc-400">
+                {s.body}
+              </p>
+            </div>
           </ScrollFade>
         ))}
       </div>
@@ -358,13 +535,16 @@ function Features() {
 
 function CallToAction() {
   return (
-    <section className="container mx-auto max-w-6xl px-6 py-20">
+    <section className="container mx-auto max-w-7xl px-6 py-20">
       <ScrollFade>
         <GlassPanel glow="soft">
           <div className="p-10 sm:p-14 flex flex-col lg:flex-row gap-8 items-start lg:items-center justify-between">
             <div className="max-w-xl">
               <Kicker>Try it now</Kicker>
-              <h2 className="mt-4 text-2xl sm:text-3xl font-semibold tracking-tight text-white">
+              <h2
+                className="mt-4 text-3xl sm:text-4xl font-bold tracking-tight text-white"
+                style={{ fontFamily: "var(--font-grotesk)" }}
+              >
                 Multi-agent debate in 30 seconds
               </h2>
               <p className="mt-3 text-sm text-zinc-400">
@@ -376,14 +556,14 @@ function CallToAction() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/live"
-                className="group inline-flex items-center gap-2 rounded-md bg-cyan-400 px-5 py-3 font-mono text-xs font-semibold uppercase tracking-[0.14em] text-black hover:bg-cyan-300 transition-all"
+                className="group inline-flex items-center gap-2 rounded-md bg-cyan-400 px-6 py-3.5 font-mono text-xs font-semibold uppercase tracking-[0.14em] text-black hover:bg-cyan-300 transition-all glow-cyan"
               >
                 Open /live
                 <Arrow />
               </Link>
               <Link
                 href="/debate"
-                className="inline-flex items-center gap-2 rounded-md border border-cyan-400/30 px-5 py-3 font-mono text-xs font-semibold uppercase tracking-[0.14em] text-cyan-200 hover:border-cyan-400 hover:bg-cyan-400/5 transition-all"
+                className="inline-flex items-center gap-2 rounded-md border border-cyan-400/35 bg-cyan-400/5 px-6 py-3.5 font-mono text-xs font-semibold uppercase tracking-[0.14em] text-cyan-200 hover:border-cyan-400 hover:bg-cyan-400/10 transition-all"
               >
                 Browse cached
                 <Arrow />
@@ -403,9 +583,9 @@ function CallToAction() {
 function Footer() {
   return (
     <footer className="border-t border-cyan-400/10 mt-10">
-      <div className="container mx-auto max-w-6xl px-6 py-8 flex flex-wrap items-center gap-4 justify-between">
+      <div className="container mx-auto max-w-7xl px-6 py-8 flex flex-wrap items-center gap-4 justify-between">
         <p className="label-mono text-zinc-500">
-          Intelligence Core · DRL × LLM × VN30
+          QuantArena · DRL × Agentic LLM · VN30
         </p>
         <p className="text-xs text-zinc-500 font-mono">
           Backend{" "}
@@ -416,5 +596,62 @@ function Footer() {
         </p>
       </div>
     </footer>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  ICONS                                                                      */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+const STROKE: React.SVGProps<SVGSVGElement> = {
+  width: 26,
+  height: 26,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.5,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+};
+
+function IconRl() {
+  return (
+    <svg {...STROKE}>
+      <path d="M3 17l4-5 4 3 4-7 6 8" />
+      <circle cx="3" cy="17" r="1.5" fill="currentColor" />
+      <circle cx="15" cy="8" r="1.5" fill="currentColor" />
+      <circle cx="21" cy="16" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function IconLlm() {
+  return (
+    <svg {...STROKE}>
+      <circle cx="6" cy="6" r="2.5" />
+      <circle cx="18" cy="6" r="2.5" />
+      <circle cx="6" cy="18" r="2.5" />
+      <circle cx="18" cy="18" r="2.5" />
+      <circle cx="12" cy="12" r="2.5" fill="currentColor" />
+      <path d="M8 8l2 2M16 8l-2 2M8 16l2-2M16 16l-2-2" opacity={0.6} />
+    </svg>
+  );
+}
+
+function IconLive() {
+  return (
+    <svg {...STROKE}>
+      <path d="M5 12h2l2-6 4 12 2-6h4" />
+      <circle cx="20" cy="12" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function IconHonest() {
+  return (
+    <svg {...STROKE}>
+      <path d="M12 3v18M5 9l7-6 7 6M5 15l7 6 7-6" opacity={0.6} />
+      <path d="M5 9h14M5 15h14" />
+    </svg>
   );
 }
