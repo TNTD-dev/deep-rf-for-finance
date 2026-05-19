@@ -222,12 +222,17 @@ function LlmViz() {
       {/* Stage 2: hub+spoke */}
       <g className="llm-stage" style={{ ...FILL_BOX, animationDelay: "1.4s" } as React.CSSProperties} transform="translate(200, 75)">
         {[0, 90, 180, 270].map((deg) => {
+          // Round so SSR / CSR floats serialize identically — Math.cos at
+          // 90° / 270° produces tiny epsilon values that differ across V8
+          // builds and trip Next 16's hydration check.
           const r = 22;
           const rad = (deg * Math.PI) / 180;
+          const x = Math.round(r * Math.cos(rad) * 100) / 100;
+          const y = Math.round(r * Math.sin(rad) * 100) / 100;
           return (
             <g key={deg}>
-              <line x1="0" y1="0" x2={r * Math.cos(rad)} y2={r * Math.sin(rad)} stroke="rgba(34,211,238,0.45)" strokeWidth="1" />
-              <circle cx={r * Math.cos(rad)} cy={r * Math.sin(rad)} r="3" fill="#67e8f9" />
+              <line x1="0" y1="0" x2={x} y2={y} stroke="rgba(34,211,238,0.45)" strokeWidth="1" />
+              <circle cx={x} cy={y} r="3" fill="#67e8f9" />
             </g>
           );
         })}
