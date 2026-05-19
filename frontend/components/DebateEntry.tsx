@@ -2,6 +2,7 @@
 
 import { DecisionPanel } from "@/components/DecisionPanel";
 import { RoleBadge } from "@/components/RoleBadge";
+import { TranscriptContent } from "@/components/TranscriptContent";
 import type { DebateEntry as Entry } from "@/lib/types";
 
 interface Props {
@@ -41,16 +42,14 @@ export function DebateEntry({ entry, round, active }: Props) {
           {fmtTime(entry.ts)}
         </span>
       </header>
-      <div className="mt-3">
+      <div className="mt-4">
         {hasDecision && !hasContent ? (
           <DecisionPanel decision={entry.decision!} />
         ) : (
-          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-zinc-200">
-            {entry.content}
-          </pre>
+          <TranscriptContent content={entry.content} />
         )}
         {hasDecision && hasContent && (
-          <div className="mt-4 border-t border-cyan-400/10 pt-3">
+          <div className="mt-5 border-t border-cyan-400/10 pt-4">
             <DecisionPanel decision={entry.decision!} />
           </div>
         )}

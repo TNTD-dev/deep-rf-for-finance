@@ -2,6 +2,7 @@
 
 import { DecisionPanel } from "@/components/DecisionPanel";
 import { RoleBadge } from "@/components/RoleBadge";
+import { TranscriptContent } from "@/components/TranscriptContent";
 import type { LiveEvent } from "@/lib/types";
 
 interface Props {
@@ -31,9 +32,9 @@ export function LiveEntry({ event }: Props) {
               done
             </span>
           </header>
-          <pre className="mt-3 whitespace-pre-wrap font-sans text-sm leading-relaxed text-zinc-200">
-            {event.summary}
-          </pre>
+          <div className="mt-3">
+            <TranscriptContent content={event.summary} />
+          </div>
         </article>
       );
     case "decision":
