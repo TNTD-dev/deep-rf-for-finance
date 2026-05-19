@@ -10,8 +10,9 @@ interface Props {
 export function SSEStream({ events }: Props) {
   if (events.length === 0) {
     return (
-      <p className="text-sm text-gray-500">
-        Press &quot;Run for today&quot; to start a live multi-agent decision.
+      <p className="font-mono text-sm text-zinc-500">
+        Press <span className="text-cyan-300">Run for today</span> to start a
+        live multi-agent decision. Events stream here.
       </p>
     );
   }

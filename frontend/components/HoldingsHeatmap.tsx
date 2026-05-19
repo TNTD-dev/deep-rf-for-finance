@@ -9,14 +9,16 @@ interface Props {
 const CELL_W = 5;
 const CELL_H = 28;
 const LABEL_W = 50;
-const FILL = "#059669"; // emerald-600
+const FILL = "#22D3EE"; // cyan-400 — matches Intelligence Core accent
 
 export function HoldingsHeatmap({ payload }: Props) {
   const first = payload.holdings[0];
   const tickers = first ? Object.keys(first).filter((k) => k !== "date") : [];
 
   if (tickers.length === 0 || payload.holdings.length === 0) {
-    return <p className="text-sm text-gray-500">No holdings data.</p>;
+    return (
+      <p className="font-mono text-sm text-zinc-500">No holdings data.</p>
+    );
   }
 
   const dates = payload.holdings.map((h) => String(h.date));
@@ -46,7 +48,8 @@ export function HoldingsHeatmap({ payload }: Props) {
               x={0}
               y={row * CELL_H + CELL_H / 2 + 4}
               fontSize="11"
-              fill="#374151"
+              fontFamily="var(--font-jbm)"
+              fill="#a1a1aa"
             >
               {t}
             </text>
@@ -76,14 +79,15 @@ export function HoldingsHeatmap({ payload }: Props) {
               x={LABEL_W + i * CELL_W}
               y={totalH + 14}
               fontSize="10"
-              fill="#6b7280"
+              fontFamily="var(--font-jbm)"
+              fill="#71717a"
             >
               {d.slice(0, 7)}
             </text>
           ) : null,
         )}
       </svg>
-      <p className="mt-2 text-xs text-gray-500">
+      <p className="mt-3 text-xs text-zinc-500">
         Color intensity = share count, normalized per ticker (each row scales
         to its own max so smaller-priced tickers stay visible). Hover a cell
         for the exact count.

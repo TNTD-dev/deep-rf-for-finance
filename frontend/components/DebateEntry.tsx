@@ -20,24 +20,28 @@ export function DebateEntry({ entry, round }: Props) {
   const hasContent = !!entry.content && entry.content.trim().length > 0;
 
   return (
-    <article className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+    <article className="rounded-md border border-cyan-400/15 bg-black/40 backdrop-blur-sm p-4 transition-colors hover:border-cyan-400/30">
       <header className="flex flex-wrap items-center gap-3">
         <RoleBadge role={entry.role} round={round} />
         {entry.model && (
-          <span className="text-xs text-gray-500">{String(entry.model)}</span>
+          <span className="font-mono text-[11px] text-zinc-500">
+            {String(entry.model)}
+          </span>
         )}
-        <span className="text-xs text-gray-400">{fmtTime(entry.ts)}</span>
+        <span className="font-mono text-[11px] text-zinc-600">
+          {fmtTime(entry.ts)}
+        </span>
       </header>
       <div className="mt-3">
         {hasDecision && !hasContent ? (
           <DecisionPanel decision={entry.decision!} />
         ) : (
-          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-800">
+          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-zinc-200">
             {entry.content}
           </pre>
         )}
         {hasDecision && hasContent && (
-          <div className="mt-4 border-t pt-3">
+          <div className="mt-4 border-t border-cyan-400/10 pt-3">
             <DecisionPanel decision={entry.decision!} />
           </div>
         )}
