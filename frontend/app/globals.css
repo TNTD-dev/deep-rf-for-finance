@@ -4,127 +4,264 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+  Intelligence Core | Nexora Systems — design system (.agent/DESIGN.md)
+  Dark glass aesthetic. Cyan #22D3EE on #000000. Inter display + JetBrains
+  Mono labels/body. Surfaces read as glass first; depth via gradient border
+  shells + soft cyan glow. Subtle motion via fade-in on scroll + hover glow.
+*/
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Brand palette (DESIGN.md) */
+  --color-cyan: #22d3ee;
+  --color-cyan-soft: #06b6d4;
+  --color-cyan-tint: #67e8f9;
+  --color-cyan-dim: rgba(34, 211, 238, 0.12);
+
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jbm);
+  --font-heading: var(--font-inter);
+
   --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.4);
+  --radius-xl: calc(var(--radius) * 1.8);
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Map base shadcn tokens onto the cyan-on-black brand. The whole site runs
+     dark-first; .dark class on <html> is the only mode, the light branch is
+     intentionally identical so component libs that look up `:root` get the
+     same answer as `.dark`. */
+  --background: #000000;
+  --foreground: #e4e4e7;
+
+  --card: rgba(8, 10, 12, 0.7);
+  --card-foreground: #e4e4e7;
+
+  --popover: #08090b;
+  --popover-foreground: #e4e4e7;
+
+  --primary: #22d3ee;
+  --primary-foreground: #000000;
+
+  --secondary: rgba(34, 211, 238, 0.12);
+  --secondary-foreground: #67e8f9;
+
+  --muted: rgba(255, 255, 255, 0.04);
+  --muted-foreground: #a1a1aa;
+
+  --accent: rgba(34, 211, 238, 0.16);
+  --accent-foreground: #67e8f9;
+
+  --destructive: #f87171;
+
+  --border: rgba(34, 211, 238, 0.18);
+  --input: rgba(34, 211, 238, 0.18);
+  --ring: rgba(34, 211, 238, 0.55);
+
+  --chart-1: #22d3ee;
+  --chart-2: #06b6d4;
+  --chart-3: #67e8f9;
+  --chart-4: #a1a1aa;
+  --chart-5: #52525b;
+
+  --radius: 0.375rem;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* keep parity so toggling .dark class is a no-op — we ship dark-only. */
+  color-scheme: dark;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
+    @apply border-border;
   }
   html {
     @apply font-sans;
+    color-scheme: dark;
+    /* Subtle radial vignette behind the cyan grid → page reads as a deep
+       interior rather than a flat black background. */
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(34, 211, 238, 0.10), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 100% 100%, rgba(6, 182, 212, 0.08), transparent 60%),
+      #000000;
+    background-attachment: fixed;
+  }
+  body {
+    @apply bg-transparent text-foreground antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  /* Faint dot grid layered over the page — keeps the "Strong grid" framing
+     the design system asks for without dominating content. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(34, 211, 238, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34, 211, 238, 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 30%, transparent 80%);
+  }
+
+  /* Hide the dot grid when a child opts out (e.g. a hero hero with its own
+     background). */
+  body.no-grid::before {
+    display: none;
+  }
+
+  /* Selection: cyan tint, black text — matches button-primary contrast. */
+  ::selection {
+    background-color: rgba(34, 211, 238, 0.65);
+    color: #000;
+  }
+
+  /* Mono-label utility — DESIGN.md label-md (12px, weight 600, tracking 1.2px,
+     uppercase). Used for kicker labels, badges, footer tags. */
+  .label-mono {
+    @apply font-mono text-[11px] font-semibold uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-cyan-tint);
+  }
+
+  /* Display-lg helper — DESIGN.md display-lg (Inter, 72px, weight 600, tight
+     tracking). Use sparingly: hero headlines only. */
+  .display-xl {
+    font-family: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+    font-weight: 600;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+  }
+}
+
+@layer utilities {
+  /* Gradient border shell (DESIGN.md "Techniques"). Outer wrapper draws a
+     1px cyan/black gradient frame; inner surface lives inside as glass.
+     Apply as: <div class="glass-shell"><div class="glass-inner">...</div></div> */
+  .glass-shell {
+    position: relative;
+    padding: 1px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(
+      135deg,
+      rgba(34, 211, 238, 0.45),
+      rgba(34, 211, 238, 0.05) 35%,
+      rgba(34, 211, 238, 0.0) 70%,
+      rgba(34, 211, 238, 0.25)
+    );
+    isolation: isolate;
+  }
+  .glass-shell::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: inherit;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 300ms ease;
+  }
+  .glass-shell:hover::after {
+    opacity: 1;
+  }
+  .glass-inner {
+    position: relative;
+    border-radius: calc(var(--radius-lg) - 1px);
+    background:
+      linear-gradient(180deg, rgba(34, 211, 238, 0.05), rgba(0, 0, 0, 0.0) 60%),
+      rgba(8, 10, 12, 0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    overflow: hidden;
+  }
+
+  /* Compact glass surface — no gradient shell, just the inner. Use for small
+     chips, controls, list items. */
+  .glass-flat {
+    background: rgba(8, 10, 12, 0.6);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(34, 211, 238, 0.16);
+    border-radius: var(--radius-md);
+  }
+
+  /* Cyan glow — soft outer ring for hero CTAs and emphasized surfaces. */
+  .glow-cyan {
+    box-shadow:
+      0 0 24px rgba(34, 211, 238, 0.25),
+      inset 0 0 0 1px rgba(34, 211, 238, 0.35);
+  }
+  .glow-cyan-strong {
+    box-shadow:
+      0 0 40px rgba(34, 211, 238, 0.35),
+      inset 0 0 0 1px rgba(34, 211, 238, 0.55);
+  }
+
+  /* ScrollFade — small JS observer toggles the .is-visible class. Animation
+     lives here so anything wrapped in <ScrollFade> works automatically. */
+  .scroll-fade {
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity 600ms ease,
+      transform 600ms ease;
+    will-change: opacity, transform;
+  }
+  .scroll-fade.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-fade {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+
+  /* Hover-text-glow on links — DESIGN.md "Hover Patterns: text". */
+  .link-glow {
+    transition:
+      color 200ms ease,
+      text-shadow 200ms ease;
+  }
+  .link-glow:hover {
+    color: var(--color-cyan);
+    text-shadow: 0 0 12px rgba(34, 211, 238, 0.55);
   }
 }
