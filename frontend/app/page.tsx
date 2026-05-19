@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { FeatureTiles } from "@/components/FeatureTiles";
+import { MethodologyPipeline } from "@/components/MethodologyPipeline";
 import { OrbitalHero } from "@/components/OrbitalHero";
 import { ScrollFade } from "@/components/ScrollFade";
 import { GlassPanel, Kicker } from "@/components/ui/glass";
@@ -17,38 +19,6 @@ const HEADLINE_STATS: { label: string; value: string; hint: string }[] = [
   { label: "Test window", value: "248", hint: "trading sessions · 2025-05 → 2026-04" },
   { label: "Multi-agent return", value: "+50.18%", hint: "Sharpe 2.19 · 51 weekly decisions" },
   { label: "LLM cost", value: "$3.21", hint: "full backtest, gpt-4o + gpt-4o-mini" },
-];
-
-const FEATURES: {
-  title: string;
-  body: string;
-  tag: string;
-  icon: React.ReactNode;
-}[] = [
-  {
-    tag: "01 · Reinforcement",
-    title: "DDPG + PPO on a custom VN env",
-    body: "Stable-baselines3 trained on 5 years of VN30 prices with HOSE rules baked in: ±7% price band, 100-share lots, asymmetric 0.15% / 0.25% fees. PPO is the headline RL agent at +40.29%.",
-    icon: <IconRl />,
-  },
-  {
-    tag: "02 · LLM Trading",
-    title: "Zero-shot → agentic → multi-agent",
-    body: "Three increasingly capable LLM patterns. Multi-agent runs an 8-role LangGraph: three analysts, a bull/bear debate, trader, risk manager, portfolio manager. Weekly cadence, replayable, cached.",
-    icon: <IconLlm />,
-  },
-  {
-    tag: "03 · Live Mode",
-    title: "Watch agents reason in real time",
-    body: "Click run. The multi-agent system streams agent_start / agent_complete / decision events via SSE — 8 role cards light up sequentially, ~30-60 seconds total, ~$0.05 per click.",
-    icon: <IconLive />,
-  },
-  {
-    tag: "04 · Honest Comparison",
-    title: "Same env, same fees, same window",
-    body: "Every agent runs through the same gymnasium env. No lookahead — news on day D is only visible from D+1 close. Reproducible: same seed → identical trajectory.",
-    icon: <IconHonest />,
-  },
 ];
 
 type AgentRow = {
@@ -95,10 +65,9 @@ export default function LandingPage() {
       <TickerBar />
       <Stats />
       <Leaderboard rows={rows} warm={warm} />
-      <Features />
-      <Methodology />
+      <FeatureTiles />
+      <MethodologyPipeline />
       <CallToAction />
-      <Footer />
     </main>
   );
 }
@@ -422,112 +391,8 @@ const PLACEHOLDER_ROWS: AgentRow[] = [
 ];
 
 /* ────────────────────────────────────────────────────────────────────────── */
-/*  FEATURES                                                                   */
+/*  FEATURES + METHODOLOGY — extracted to FeatureTiles.tsx + MethodologyPipeline.tsx */
 /* ────────────────────────────────────────────────────────────────────────── */
-
-function Features() {
-  return (
-    <section className="container mx-auto max-w-7xl px-6 py-20">
-      <ScrollFade>
-        <Kicker>System overview</Kicker>
-        <h2
-          className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight text-white"
-          style={{ fontFamily: "var(--font-grotesk)" }}
-        >
-          Four layers, one comparison
-        </h2>
-      </ScrollFade>
-
-      <div className="mt-12 grid gap-6 sm:grid-cols-2">
-        {FEATURES.map((f, i) => (
-          <ScrollFade key={f.title} delayMs={i * 80}>
-            <GlassPanel className="h-full group">
-              <div className="p-7 sm:p-8">
-                <div className="flex items-start gap-4">
-                  <div className="shrink-0 rounded-md border border-cyan-400/30 bg-cyan-400/10 p-3 text-cyan-300 group-hover:text-cyan-200 group-hover:border-cyan-400/60 transition-colors">
-                    {f.icon}
-                  </div>
-                  <div>
-                    <p className="label-mono">{f.tag}</p>
-                    <h3
-                      className="mt-2 text-xl font-bold text-white"
-                      style={{ fontFamily: "var(--font-grotesk)" }}
-                    >
-                      {f.title}
-                    </h3>
-                  </div>
-                </div>
-                <p className="mt-5 text-sm leading-relaxed text-zinc-400">
-                  {f.body}
-                </p>
-              </div>
-            </GlassPanel>
-          </ScrollFade>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* ────────────────────────────────────────────────────────────────────────── */
-/*  METHODOLOGY — quick explainer with numbered steps                          */
-/* ────────────────────────────────────────────────────────────────────────── */
-
-function Methodology() {
-  const steps = [
-    {
-      n: "01",
-      title: "Train",
-      body: "5 years of VN30 prices (2019-01 → 2024-12). DDPG + PPO via stable-baselines3 on a custom gymnasium env that enforces HOSE rules. LLM agents use gpt-4o + gpt-4o-mini, locked at the Oct 2023 cutoff so the test window stays out-of-distribution.",
-    },
-    {
-      n: "02",
-      title: "Backtest",
-      body: "Test window 2025-05 → 2026-04, 248 daily sessions on five tickers (VCB, FPT, HPG, VIC, VNM). RL decides daily; LLM agents decide weekly to control cost. Decisions emit target weights; the env handles ±7% clamping, 100-share lot rounding, and asymmetric 0.15% / 0.25% fees.",
-    },
-    {
-      n: "03",
-      title: "Compare",
-      body: "Every agent produces a portfolio curve, holdings parquet, and metrics JSON. metrics_table.csv aggregates all 8 into one wide row. Same seed → identical trajectory. Multi-agent transcripts are cached per (date, ticker_set, prompt_hash) so reruns are free.",
-    },
-  ];
-  return (
-    <section className="container mx-auto max-w-7xl px-6 py-20">
-      <ScrollFade>
-        <Kicker>How it works</Kicker>
-        <h2
-          className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight text-white"
-          style={{ fontFamily: "var(--font-grotesk)" }}
-        >
-          Three steps, no hand-waving
-        </h2>
-      </ScrollFade>
-      <div className="mt-12 grid gap-6 md:grid-cols-3">
-        {steps.map((s, i) => (
-          <ScrollFade key={s.n} delayMs={i * 100}>
-            <div className="relative h-full rounded-lg border border-cyan-400/15 bg-gradient-to-b from-cyan-400/[0.04] to-transparent p-7">
-              <span
-                className="absolute -top-3 left-7 rounded bg-black px-2 py-1 font-mono text-xs uppercase tracking-[0.18em] text-cyan-300 ring-1 ring-cyan-400/30"
-                style={{ boxShadow: "0 0 12px rgba(34,211,238,0.3)" }}
-              >
-                {s.n}
-              </span>
-              <h3
-                className="mt-3 text-2xl font-bold text-white"
-                style={{ fontFamily: "var(--font-grotesk)" }}
-              >
-                {s.title}
-              </h3>
-              <p className="mt-4 text-sm leading-relaxed text-zinc-400">
-                {s.body}
-              </p>
-            </div>
-          </ScrollFade>
-        ))}
-      </div>
-    </section>
-  );
-}
 
 /* ────────────────────────────────────────────────────────────────────────── */
 /*  CTA                                                                        */
@@ -576,82 +441,3 @@ function CallToAction() {
   );
 }
 
-/* ────────────────────────────────────────────────────────────────────────── */
-/*  FOOTER                                                                     */
-/* ────────────────────────────────────────────────────────────────────────── */
-
-function Footer() {
-  return (
-    <footer className="border-t border-cyan-400/10 mt-10">
-      <div className="container mx-auto max-w-7xl px-6 py-8 flex flex-wrap items-center gap-4 justify-between">
-        <p className="label-mono text-zinc-500">
-          QuantArena · DRL × Agentic LLM · VN30
-        </p>
-        <p className="text-xs text-zinc-500 font-mono">
-          Backend{" "}
-          <code className="rounded bg-cyan-400/10 px-1.5 py-0.5 text-cyan-300">
-            {BACKEND_URL}
-          </code>{" "}
-          · Next.js 16 · Tailwind v4 · Recharts · FastAPI · LangGraph
-        </p>
-      </div>
-    </footer>
-  );
-}
-
-/* ────────────────────────────────────────────────────────────────────────── */
-/*  ICONS                                                                      */
-/* ────────────────────────────────────────────────────────────────────────── */
-
-const STROKE: React.SVGProps<SVGSVGElement> = {
-  width: 26,
-  height: 26,
-  viewBox: "0 0 24 24",
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 1.5,
-  strokeLinecap: "round",
-  strokeLinejoin: "round",
-};
-
-function IconRl() {
-  return (
-    <svg {...STROKE}>
-      <path d="M3 17l4-5 4 3 4-7 6 8" />
-      <circle cx="3" cy="17" r="1.5" fill="currentColor" />
-      <circle cx="15" cy="8" r="1.5" fill="currentColor" />
-      <circle cx="21" cy="16" r="1.5" fill="currentColor" />
-    </svg>
-  );
-}
-
-function IconLlm() {
-  return (
-    <svg {...STROKE}>
-      <circle cx="6" cy="6" r="2.5" />
-      <circle cx="18" cy="6" r="2.5" />
-      <circle cx="6" cy="18" r="2.5" />
-      <circle cx="18" cy="18" r="2.5" />
-      <circle cx="12" cy="12" r="2.5" fill="currentColor" />
-      <path d="M8 8l2 2M16 8l-2 2M8 16l2-2M16 16l-2-2" opacity={0.6} />
-    </svg>
-  );
-}
-
-function IconLive() {
-  return (
-    <svg {...STROKE}>
-      <path d="M5 12h2l2-6 4 12 2-6h4" />
-      <circle cx="20" cy="12" r="1.5" fill="currentColor" />
-    </svg>
-  );
-}
-
-function IconHonest() {
-  return (
-    <svg {...STROKE}>
-      <path d="M12 3v18M5 9l7-6 7 6M5 15l7 6 7-6" opacity={0.6} />
-      <path d="M5 9h14M5 15h14" />
-    </svg>
-  );
-}
