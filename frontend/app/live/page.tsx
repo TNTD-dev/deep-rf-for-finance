@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 
 import { RunButton } from "@/components/RunButton";
+import { ScrollFade } from "@/components/ScrollFade";
 import { SSEStream } from "@/components/SSEStream";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassPanel, Kicker } from "@/components/ui/glass";
 import { streamLive } from "@/lib/sse";
 import type { LiveEvent } from "@/lib/types";
 
@@ -39,39 +40,56 @@ export default function LivePage() {
   };
 
   return (
-    <main className="container mx-auto max-w-5xl space-y-6 px-4 py-6">
-      <header className="border-b border-gray-200 pb-4">
-        <h1 className="text-2xl font-bold tracking-tight">Live Multi-Agent Run</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Triggers a real multi-agent decision against the latest available
-          market data. Streams per-role progress until the portfolio_manager
-          emits final weights.
-        </p>
-      </header>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold text-gray-700">Controls</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <RunButton state={state} onClick={start} />
-          <p className="text-xs text-gray-500">
-            ≈ <span className="font-medium">$0.05</span> per run (real OpenAI
-            call). 60s timeout. 8 roles fire sequentially.
+    <main className="container mx-auto max-w-5xl px-6 pt-10 pb-16 space-y-8">
+      <ScrollFade>
+        <header className="space-y-3">
+          <Kicker>Live · multi-agent</Kicker>
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white">
+            Watch 8 roles deliberate
+          </h1>
+          <p className="text-sm text-zinc-400 max-w-2xl">
+            Click run. The multi-agent system streams{" "}
+            <code className="rounded bg-cyan-400/10 px-1.5 py-0.5 font-mono text-[11px] text-cyan-300">
+              agent_start
+            </code>
+            ,{" "}
+            <code className="rounded bg-cyan-400/10 px-1.5 py-0.5 font-mono text-[11px] text-cyan-300">
+              agent_complete
+            </code>
+            , and{" "}
+            <code className="rounded bg-cyan-400/10 px-1.5 py-0.5 font-mono text-[11px] text-cyan-300">
+              decision
+            </code>{" "}
+            events via SSE — 8 role cards light up sequentially, then the
+            portfolio_manager emits final weights.
           </p>
-        </CardContent>
-      </Card>
+        </header>
+      </ScrollFade>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold text-gray-700">
-            Event Stream
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SSEStream events={events} />
-        </CardContent>
-      </Card>
+      <ScrollFade delayMs={80}>
+        <GlassPanel glow="soft">
+          <div className="p-6 space-y-3">
+            <Kicker>Controls</Kicker>
+            <RunButton state={state} onClick={start} />
+            <p className="text-xs text-zinc-500 font-mono">
+              ≈{" "}
+              <span className="font-semibold text-cyan-300">$0.05</span> per run
+              (real OpenAI call) · 60s timeout · 8 roles fire sequentially
+            </p>
+          </div>
+        </GlassPanel>
+      </ScrollFade>
+
+      <ScrollFade delayMs={140}>
+        <GlassPanel>
+          <div className="p-6">
+            <Kicker>Event stream</Kicker>
+            <div className="mt-4">
+              <SSEStream events={events} />
+            </div>
+          </div>
+        </GlassPanel>
+      </ScrollFade>
     </main>
   );
 }

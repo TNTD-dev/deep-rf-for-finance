@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 
 import { DatePicker } from "@/components/DatePicker";
 import { DebateStream } from "@/components/DebateStream";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollFade } from "@/components/ScrollFade";
+import { GlassPanel, Kicker } from "@/components/ui/glass";
 import { BACKEND_URL, getDebate, getDebateDates } from "@/lib/api";
 import type { DebateTranscript } from "@/lib/types";
 
@@ -33,36 +34,41 @@ export default function DebatePage() {
   }, []);
 
   return (
-    <main className="container mx-auto max-w-5xl space-y-6 px-4 py-6">
-      <header className="border-b border-gray-200 pb-4">
-        <h1 className="text-2xl font-bold tracking-tight">
-          Multi-Agent Debate Replay
-        </h1>
-        <p className="mt-1 text-sm text-gray-600">
-          One decision = 10 turns across 8 roles (3 analysts → 2 debate rounds →
-          trader → risk manager → portfolio manager). Dates discovered from
-          backend; pick any to replay.
-        </p>
-      </header>
+    <main className="container mx-auto max-w-5xl px-6 pt-10 pb-16 space-y-8">
+      <ScrollFade>
+        <header className="space-y-3">
+          <Kicker>Multi-agent replay</Kicker>
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white">
+            Debate transcripts
+          </h1>
+          <p className="text-sm text-zinc-400 max-w-2xl">
+            One decision = 10 turns across 8 roles (3 analysts → 2 debate rounds
+            → trader → risk manager → portfolio manager). Pick a date to replay
+            the full deliberation that produced that day's portfolio weights.
+          </p>
+        </header>
+      </ScrollFade>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold text-gray-700">
-            Select date
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {datesLoading ? (
-            <p className="text-sm text-gray-600">Đang load danh sách ngày…</p>
-          ) : datesError ? (
-            <DatesError message={datesError} />
-          ) : dates.length === 0 ? (
-            <EmptyDates />
-          ) : (
-            <DatePicker dates={dates} value={date} onChange={setDate} />
-          )}
-        </CardContent>
-      </Card>
+      <ScrollFade delayMs={80}>
+        <GlassPanel>
+          <div className="p-6">
+            <Kicker>Select date</Kicker>
+            <div className="mt-4">
+              {datesLoading ? (
+                <p className="font-mono text-sm text-zinc-400">
+                  Đang load danh sách ngày…
+                </p>
+              ) : datesError ? (
+                <DatesError message={datesError} />
+              ) : dates.length === 0 ? (
+                <EmptyDates />
+              ) : (
+                <DatePicker dates={dates} value={date} onChange={setDate} />
+              )}
+            </div>
+          </div>
+        </GlassPanel>
+      </ScrollFade>
 
       {/* key={date} forces remount on date change → fresh initial state,
           avoiding synchronous setState-in-effect (same pattern as PKG-14). */}
@@ -73,11 +79,20 @@ export default function DebatePage() {
 
 function DatesError({ message }: { message: string }) {
   return (
-    <div className="rounded border border-red-200 bg-red-50 p-4">
-      <p className="font-semibold text-red-700">Error loading dates: {message}</p>
-      <p className="mt-2 text-sm text-gray-600">
-        Is the backend running at <code>{BACKEND_URL}</code>? Try{" "}
-        <code>.venv/bin/uvicorn backend.main:app --port 8000</code>.
+    <div className="rounded-md border border-rose-400/30 bg-rose-500/10 p-4">
+      <p className="font-mono text-sm font-semibold text-rose-300">
+        Error loading dates: {message}
+      </p>
+      <p className="mt-2 text-sm text-zinc-400">
+        Is the backend running at{" "}
+        <code className="rounded bg-cyan-400/10 px-1.5 py-0.5 font-mono text-cyan-300">
+          {BACKEND_URL}
+        </code>
+        ? Try{" "}
+        <code className="rounded bg-cyan-400/10 px-1.5 py-0.5 font-mono text-cyan-300">
+          .venv/bin/uvicorn backend.main:app --port 8000
+        </code>
+        .
       </p>
     </div>
   );
@@ -85,12 +100,15 @@ function DatesError({ message }: { message: string }) {
 
 function EmptyDates() {
   return (
-    <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+    <div className="rounded-md border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-200">
       <p className="font-semibold">Chưa có transcripts.</p>
-      <p className="mt-1">
-        Run <code>.venv/bin/python scripts/run_multi_agent.py</code> để sinh
-        transcripts. Mỗi decision ≈ 30s và sẽ xuất hiện ở đây sau khi script
-        hoàn tất.
+      <p className="mt-1 text-amber-100/80">
+        Run{" "}
+        <code className="rounded bg-amber-400/10 px-1.5 py-0.5 font-mono text-amber-200">
+          .venv/bin/python scripts/run_multi_agent.py
+        </code>{" "}
+        để sinh transcripts. Mỗi decision ≈ 30s và sẽ xuất hiện ở đây sau khi
+        script hoàn tất.
       </p>
     </div>
   );
@@ -114,21 +132,29 @@ function DebateInner({ date }: { date: string }) {
   }, [date]);
 
   if (loading) {
-    return <p className="p-4 text-gray-600">Loading {date}…</p>;
+    return (
+      <p className="font-mono text-sm text-zinc-400">Loading {date}…</p>
+    );
   }
   if (error) {
     return (
-      <div className="rounded border border-red-200 bg-red-50 p-4">
-        <p className="font-semibold text-red-700">Error: {error}</p>
-        <p className="mt-2 text-sm text-gray-600">
-          Is the backend running at <code>{BACKEND_URL}</code>? Try{" "}
-          <code>.venv/bin/uvicorn backend.main:app --port 8000</code>.
-        </p>
-      </div>
+      <GlassPanel>
+        <div className="p-6">
+          <Kicker className="text-rose-300">Error</Kicker>
+          <p className="mt-3 font-mono text-sm text-zinc-200">{error}</p>
+          <p className="mt-3 text-sm text-zinc-400">
+            Is the backend running at{" "}
+            <code className="rounded bg-cyan-400/10 px-1.5 py-0.5 font-mono text-cyan-300">
+              {BACKEND_URL}
+            </code>
+            ?
+          </p>
+        </div>
+      </GlassPanel>
     );
   }
   if (!transcript) {
-    return <p className="p-4">No transcript for {date}.</p>;
+    return <p className="text-zinc-300">No transcript for {date}.</p>;
   }
   return <DebateStream transcript={transcript} />;
 }
