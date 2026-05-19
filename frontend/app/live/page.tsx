@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { LiveFlow } from "@/components/LiveFlow";
+import { LiveSidecar } from "@/components/LiveSidecar";
 import { RunButton } from "@/components/RunButton";
-import { SSEStream } from "@/components/SSEStream";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollFade } from "@/components/ScrollFade";
+import { GlassPanel, Kicker } from "@/components/ui/glass";
 import { streamLive } from "@/lib/sse";
 import type { LiveEvent } from "@/lib/types";
 
@@ -39,39 +41,50 @@ export default function LivePage() {
   };
 
   return (
-    <main className="container mx-auto max-w-5xl space-y-6 px-4 py-6">
-      <header className="border-b border-gray-200 pb-4">
-        <h1 className="text-2xl font-bold tracking-tight">Live Multi-Agent Run</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Triggers a real multi-agent decision against the latest available
-          market data. Streams per-role progress until the portfolio_manager
-          emits final weights.
-        </p>
-      </header>
+    <main className="container mx-auto max-w-7xl px-6 pt-8 pb-16 space-y-6">
+      {/* Header band — title left, run button right (always reachable). */}
+      <ScrollFade>
+        <header className="flex flex-wrap items-end justify-between gap-4">
+          <div className="space-y-2">
+            <Kicker>Live · multi-agent</Kicker>
+            <h1
+              className="text-3xl sm:text-4xl font-bold tracking-tight text-white"
+              style={{ fontFamily: "var(--font-grotesk)" }}
+            >
+              Watch 8 roles deliberate
+            </h1>
+            <p className="text-xs text-zinc-500 font-mono max-w-xl">
+              SSE stream · ≈ $0.05 per run · 60s timeout · 8 roles fire sequentially
+            </p>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            <RunButton state={state} onClick={start} />
+            <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-[0.12em]">
+              real OpenAI call
+            </p>
+          </div>
+        </header>
+      </ScrollFade>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold text-gray-700">Controls</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <RunButton state={state} onClick={start} />
-          <p className="text-xs text-gray-500">
-            ≈ <span className="font-medium">$0.05</span> per run (real OpenAI
-            call). 60s timeout. 8 roles fire sequentially.
-          </p>
-        </CardContent>
-      </Card>
+      {/* Split-pane: pipeline canvas on the left, status sidecar on the right.
+          minmax(0,1fr) so the left col can shrink below its intrinsic width
+          (otherwise the SVG pushes the grid past the container). */}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_28rem]">
+        <div className="space-y-5">
+          <ScrollFade>
+            <GlassPanel>
+              <div className="p-6">
+                <Kicker>Pipeline · 8 roles</Kicker>
+                <div className="mt-5">
+                  <LiveFlow events={events} />
+                </div>
+              </div>
+            </GlassPanel>
+          </ScrollFade>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold text-gray-700">
-            Event Stream
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SSEStream events={events} />
-        </CardContent>
-      </Card>
+        <LiveSidecar events={events} state={state} />
+      </div>
     </main>
   );
 }

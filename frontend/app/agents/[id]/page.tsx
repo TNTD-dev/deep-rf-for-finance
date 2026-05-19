@@ -8,8 +8,10 @@ import { AgentMetricsDetail } from "@/components/AgentMetricsDetail";
 import { DrawdownChart } from "@/components/DrawdownChart";
 import { HoldingsHeatmap } from "@/components/HoldingsHeatmap";
 import { PortfolioChart } from "@/components/PortfolioChart";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollFade } from "@/components/ScrollFade";
+import { GlassPanel, Kicker } from "@/components/ui/glass";
 import { BACKEND_URL, getBacktest } from "@/lib/api";
+import { colorFor } from "@/lib/colors";
 import type { BacktestPayload } from "@/lib/types";
 
 export default function AgentDetailPage({
@@ -41,99 +43,146 @@ function AgentDetailInner({ id }: { id: string }) {
   }, [id]);
 
   if (loading) {
-    return <p className="p-8 text-gray-600">Loading {id}…</p>;
+    return (
+      <main className="container mx-auto max-w-7xl px-6 py-16">
+        <p className="font-mono text-sm text-zinc-400">Loading {id}…</p>
+      </main>
+    );
   }
   if (error) {
     return (
-      <div className="p-8">
-        <p className="text-red-700 font-semibold">Error: {error}</p>
-        <p className="mt-2 text-sm text-gray-600">
-          Backend at <code>{BACKEND_URL}</code> may be down, or the agent name
-          {" "}<code>{id}</code> is unknown.
-        </p>
-        <Link href="/" className="mt-4 inline-block text-blue-600 underline">
-          ← Back to dashboard
-        </Link>
-      </div>
+      <main className="container mx-auto max-w-7xl px-6 py-16">
+        <GlassPanel>
+          <div className="p-7">
+            <Kicker className="text-rose-300">Error</Kicker>
+            <p className="mt-3 font-mono text-sm text-zinc-200">{error}</p>
+            <p className="mt-3 text-sm text-zinc-400">
+              Backend at{" "}
+              <code className="rounded bg-cyan-400/10 px-1.5 py-0.5 font-mono text-cyan-300">
+                {BACKEND_URL}
+              </code>{" "}
+              may be down, or agent <code className="text-cyan-300">{id}</code>{" "}
+              is unknown.
+            </p>
+            <Link
+              href="/dashboard"
+              className="mt-5 inline-flex font-mono text-xs uppercase tracking-[0.12em] text-cyan-300 link-glow"
+            >
+              ← Back to dashboard
+            </Link>
+          </div>
+        </GlassPanel>
+      </main>
     );
   }
   if (!payload) {
     return (
-      <div className="p-8">
-        <p>No data for {id}.</p>
-        <Link href="/" className="mt-4 inline-block text-blue-600 underline">
+      <main className="container mx-auto max-w-7xl px-6 py-16">
+        <p className="text-zinc-300">No data for {id}.</p>
+        <Link
+          href="/dashboard"
+          className="mt-4 inline-flex font-mono text-xs uppercase tracking-[0.12em] text-cyan-300 link-glow"
+        >
           ← Back to dashboard
         </Link>
-      </div>
+      </main>
     );
   }
 
   const single = { [id]: payload };
   const visible = new Set([id]);
+  const cum = payload.metrics.cumulative_return;
+  const color = colorFor(id);
 
   return (
-    <main className="container mx-auto max-w-7xl space-y-6 px-4 py-6">
-      <header className="border-b border-gray-200 pb-4">
-        <Link href="/" className="text-sm text-blue-600 hover:underline">
-          ← Back to dashboard
-        </Link>
-        <div className="mt-2 flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight">{id}</h1>
-          <AgentBadge name={id} />
-          <span className="text-sm text-gray-600">
+    <main className="container mx-auto max-w-7xl px-6 pt-10 pb-16 space-y-8">
+      <ScrollFade>
+        <div>
+          <Link
+            href="/dashboard"
+            className="font-mono text-xs uppercase tracking-[0.12em] text-zinc-500 link-glow"
+          >
+            ← Back to dashboard
+          </Link>
+          <div className="mt-4 flex flex-wrap items-end gap-4">
+            <div className="flex items-center gap-3">
+              <span
+                className="h-4 w-4 rounded-full ring-2 ring-black/20"
+                style={{ background: color, boxShadow: `0 0 16px ${color}88` }}
+              />
+              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white">
+                {id}
+              </h1>
+            </div>
+            <AgentBadge name={id} />
+            <div className="ml-auto text-right">
+              <p className="label-mono">Cumulative return</p>
+              <p
+                className={`mt-1 text-3xl font-semibold tabular-nums ${
+                  cum >= 0 ? "text-cyan-300" : "text-rose-400"
+                }`}
+              >
+                {cum >= 0 ? "+" : ""}
+                {(cum * 100).toFixed(2)}%
+              </p>
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-zinc-400 font-mono">
             {payload.metrics.n_steps} sessions
-          </span>
-          {payload.provenance.test_window && (
-            <span className="text-xs text-gray-500">
-              {payload.provenance.test_window[0]} → {payload.provenance.test_window[1]}
-            </span>
-          )}
+            {payload.provenance.test_window && (
+              <>
+                {" · "}
+                {payload.provenance.test_window[0]} →{" "}
+                {payload.provenance.test_window[1]}
+              </>
+            )}
+          </p>
         </div>
-      </header>
+      </ScrollFade>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold text-gray-700">
-            Portfolio Curve
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PortfolioChart payloads={single} visible={visible} />
-        </CardContent>
-      </Card>
+      <ScrollFade delayMs={80}>
+        <GlassPanel>
+          <div className="p-6">
+            <Kicker>Portfolio curve</Kicker>
+            <div className="mt-4">
+              <PortfolioChart payloads={single} visible={visible} />
+            </div>
+          </div>
+        </GlassPanel>
+      </ScrollFade>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold text-gray-700">
-            Drawdown
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DrawdownChart payload={payload} />
-        </CardContent>
-      </Card>
+      <ScrollFade delayMs={140}>
+        <GlassPanel>
+          <div className="p-6">
+            <Kicker>Drawdown</Kicker>
+            <div className="mt-4">
+              <DrawdownChart payload={payload} />
+            </div>
+          </div>
+        </GlassPanel>
+      </ScrollFade>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold text-gray-700">
-            Holdings Heatmap
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <HoldingsHeatmap payload={payload} />
-        </CardContent>
-      </Card>
+      <ScrollFade delayMs={200}>
+        <GlassPanel>
+          <div className="p-6">
+            <Kicker>Holdings heatmap</Kicker>
+            <div className="mt-4">
+              <HoldingsHeatmap payload={payload} />
+            </div>
+          </div>
+        </GlassPanel>
+      </ScrollFade>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold text-gray-700">
-            Metrics Detail
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AgentMetricsDetail metrics={payload.metrics} />
-        </CardContent>
-      </Card>
+      <ScrollFade delayMs={260}>
+        <GlassPanel>
+          <div className="p-6">
+            <Kicker>Metrics detail</Kicker>
+            <div className="mt-4">
+              <AgentMetricsDetail metrics={payload.metrics} />
+            </div>
+          </div>
+        </GlassPanel>
+      </ScrollFade>
     </main>
   );
 }

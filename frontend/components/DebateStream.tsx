@@ -5,6 +5,8 @@ import type { DebateTranscript } from "@/lib/types";
 
 interface Props {
   transcript: DebateTranscript;
+  /** Role currently highlighted by the parent (e.g. graph click). */
+  activeRole?: string | null;
 }
 
 // Walk the transcript; for each bull/bear pair, assign a 1-based round
@@ -28,12 +30,17 @@ function assignDebateRounds(
   return out;
 }
 
-export function DebateStream({ transcript }: Props) {
+export function DebateStream({ transcript, activeRole }: Props) {
   const rounds = assignDebateRounds(transcript.transcript);
   return (
     <div className="space-y-3">
       {transcript.transcript.map((entry, i) => (
-        <DebateEntry key={i} entry={entry} round={rounds[i]} />
+        <DebateEntry
+          key={i}
+          entry={entry}
+          round={rounds[i]}
+          active={activeRole === entry.role}
+        />
       ))}
     </div>
   );

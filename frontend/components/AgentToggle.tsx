@@ -23,10 +23,12 @@ export function AgentToggle({ agents, visible, onChange }: Props) {
               else next.add(name);
               onChange(next);
             }}
-            className={`flex items-center gap-2 rounded-full border px-3 py-1 text-sm transition ${
-              on ? "bg-white" : "bg-gray-100 opacity-50"
+            className={`flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-xs uppercase tracking-[0.08em] transition-colors ${
+              on
+                ? "bg-cyan-400/10 text-zinc-100"
+                : "bg-transparent text-zinc-500 opacity-60 hover:opacity-100"
             }`}
-            style={{ borderColor: colorFor(name) }}
+            style={{ borderColor: on ? colorFor(name) : "rgba(34,211,238,0.18)" }}
           >
             <span
               className="inline-block h-2 w-2 rounded-full"

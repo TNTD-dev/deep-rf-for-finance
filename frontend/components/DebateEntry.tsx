@@ -2,11 +2,16 @@
 
 import { DecisionPanel } from "@/components/DecisionPanel";
 import { RoleBadge } from "@/components/RoleBadge";
+import { TranscriptContent } from "@/components/TranscriptContent";
 import type { DebateEntry as Entry } from "@/lib/types";
 
 interface Props {
   entry: Entry;
   round?: number;
+  /** Highlight this entry — the parent's DebateGraph just selected it. */
+  active?: boolean;
+  /** Strip the outer frame — used inside the sidecar which provides its own. */
+  bare?: boolean;
 }
 
 function fmtTime(iso: string | undefined | null): string {
@@ -15,29 +20,39 @@ function fmtTime(iso: string | undefined | null): string {
   return iso.slice(11, 19);
 }
 
-export function DebateEntry({ entry, round }: Props) {
+export function DebateEntry({ entry, round, active, bare }: Props) {
   const hasDecision = entry.decision !== undefined;
   const hasContent = !!entry.content && entry.content.trim().length > 0;
 
+  const wrapperCls = bare
+    ? ""
+    : `rounded-md border bg-black/40 backdrop-blur-sm p-4 transition-all ${
+        active
+          ? "border-cyan-400/70 ring-1 ring-cyan-400/30 glow-cyan"
+          : "border-cyan-400/15 hover:border-cyan-400/30"
+      }`;
+
   return (
-    <article className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+    <article data-role={entry.role} className={wrapperCls}>
       <header className="flex flex-wrap items-center gap-3">
         <RoleBadge role={entry.role} round={round} />
         {entry.model && (
-          <span className="text-xs text-gray-500">{String(entry.model)}</span>
+          <span className="font-mono text-[11px] text-zinc-500">
+            {String(entry.model)}
+          </span>
         )}
-        <span className="text-xs text-gray-400">{fmtTime(entry.ts)}</span>
+        <span className="font-mono text-[11px] text-zinc-600">
+          {fmtTime(entry.ts)}
+        </span>
       </header>
-      <div className="mt-3">
+      <div className="mt-4">
         {hasDecision && !hasContent ? (
           <DecisionPanel decision={entry.decision!} />
         ) : (
-          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-800">
-            {entry.content}
-          </pre>
+          <TranscriptContent content={entry.content} />
         )}
         {hasDecision && hasContent && (
-          <div className="mt-4 border-t pt-3">
+          <div className="mt-5 border-t border-cyan-400/10 pt-4">
             <DecisionPanel decision={entry.decision!} />
           </div>
         )}

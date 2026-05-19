@@ -1,11 +1,38 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+
+import { SiteNav } from "@/components/SiteNav";
 
 import "./globals.css";
 
+// Trading-platform typography:
+//   Inter        → body, paragraphs (legible at small sizes)
+//   Space Grotesk → display + headlines (engineered, technical feel)
+//   JetBrains Mono → numbers, tickers, labels (tabular data)
+// All loaded via next/font/google so CLS is zero and they ship self-hosted.
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const grotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-grotesk",
+  display: "swap",
+});
+
+const jbm = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jbm",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "DRL vs LLM/Agentic Trading — VN30",
-  description: "Comparison dashboard for 8 trading agents on Vietnamese VN30 (PKG-13+).",
+  title: "QuantArena — 8 Agents, 1 Benchmark · VN30",
+  description:
+    "Battle of the trading minds on Vietnam's VN30 market. Three classical baselines, DDPG & PPO reinforcement learning, and three LLM systems — zero-shot, single-agentic, and an 8-role multi-agent debate — benchmarked across a full 12-month out-of-sample window.",
 };
 
 export default function RootLayout({
@@ -14,23 +41,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className="h-full antialiased">
-      <body className="bg-gray-50 text-gray-900 min-h-full flex flex-col">
-        {/* PKG-15: cross-page nav. Single source for site navigation. */}
-        <nav className="border-b border-gray-200 bg-white">
-          <div className="container mx-auto flex max-w-7xl items-center gap-6 px-4 py-3 text-sm">
-            <Link href="/" className="font-semibold hover:underline">
-              Dashboard
-            </Link>
-            <Link href="/debate" className="hover:underline">
-              Debate
-            </Link>
-            <Link href="/live" className="hover:underline">
-              Live
-            </Link>
-          </div>
-        </nav>
-        {children}
+    <html lang="vi" className={`dark ${inter.variable} ${grotesk.variable} ${jbm.variable}`}>
+      <body className="min-h-screen flex flex-col relative">
+        <SiteNav />
+        <div className="relative z-10 flex-1">{children}</div>
       </body>
     </html>
   );
