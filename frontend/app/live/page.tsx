@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { LiveFlow } from "@/components/LiveFlow";
 import { RunButton } from "@/components/RunButton";
 import { ScrollFade } from "@/components/ScrollFade";
 import { SSEStream } from "@/components/SSEStream";
@@ -83,7 +84,18 @@ export default function LivePage() {
       <ScrollFade delayMs={140}>
         <GlassPanel>
           <div className="p-6">
-            <Kicker>Event stream</Kicker>
+            <Kicker>Pipeline · 8 roles</Kicker>
+            <div className="mt-5">
+              <LiveFlow events={events} />
+            </div>
+          </div>
+        </GlassPanel>
+      </ScrollFade>
+
+      <ScrollFade delayMs={200}>
+        <GlassPanel>
+          <div className="p-6">
+            <Kicker>Event log</Kicker>
             <div className="mt-4">
               <SSEStream events={events} />
             </div>
