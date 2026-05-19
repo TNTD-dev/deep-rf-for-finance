@@ -89,7 +89,10 @@ export function DebateGraph({
     <div className="relative w-full overflow-x-auto">
       <svg
         viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}
-        className="w-full min-w-[820px] h-auto"
+        // Let the SVG scale freely with its column — the previous min-w-820px
+        // was forcing the parent grid to overflow when paired with the
+        // 30rem sidecar. preserveAspectRatio (SVG default) keeps it readable.
+        className="w-full h-auto"
       >
         <defs>
           <marker

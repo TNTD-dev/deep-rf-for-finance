@@ -66,8 +66,10 @@ export default function LivePage() {
         </header>
       </ScrollFade>
 
-      {/* Split-pane: pipeline canvas on the left, status sidecar on the right. */}
-      <div className="grid gap-6 lg:grid-cols-[1fr_30rem]">
+      {/* Split-pane: pipeline canvas on the left, status sidecar on the right.
+          minmax(0,1fr) so the left col can shrink below its intrinsic width
+          (otherwise the SVG pushes the grid past the container). */}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_28rem]">
         <div className="space-y-5">
           <ScrollFade>
             <GlassPanel>

@@ -72,7 +72,9 @@ export function LiveFlow({ events }: { events: LiveEvent[] }) {
     <div className="relative w-full overflow-x-auto">
       <svg
         viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}
-        className="w-full min-w-[820px] h-auto"
+        // Scale freely with the column; min-width was forcing the grid to
+        // overflow when paired with the sidecar.
+        className="w-full h-auto"
       >
         <defs>
           <marker

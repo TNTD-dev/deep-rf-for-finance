@@ -36,7 +36,7 @@ export default function DebatePage() {
   }, []);
 
   return (
-    <main className="container mx-auto max-w-6xl px-6 pt-8 pb-16 space-y-6">
+    <main className="container mx-auto max-w-7xl px-6 pt-8 pb-16 space-y-6">
       <ScrollFade>
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-2">
@@ -240,7 +240,10 @@ function DebateInner({ date }: { date: string }) {
   return (
     // Split-pane on lg: canvas on the left, sidecar on the right. Stacks
     // vertically on smaller screens so mobile users still get the full flow.
-    <div className="grid gap-6 lg:grid-cols-[1fr_30rem]">
+    // minmax(0,1fr) lets the canvas column shrink below its intrinsic min-
+    // content width — without this the SVG / nav strip forces the grid to
+    // overflow its container.
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_28rem]">
       {/* ─────────────── CANVAS (left column) ─────────────── */}
       <div className="space-y-5">
         <ScrollFade>
