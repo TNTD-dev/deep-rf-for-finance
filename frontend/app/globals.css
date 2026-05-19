@@ -302,4 +302,56 @@
     color: var(--color-cyan);
     text-shadow: 0 0 12px rgba(34, 211, 238, 0.55);
   }
+
+  /* Ticker grid — container-query responsive. Same component is used in
+     wide page contexts (analyst section in /agents/[id]) and narrow
+     sidebars (/debate sidecar). Switches column count based on the parent
+     container's width, not the viewport. */
+  .transcript-container {
+    container-type: inline-size;
+  }
+  .transcript-ticker-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: 1fr;
+  }
+  @container (min-width: 30rem) {
+    .transcript-ticker-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @container (min-width: 52rem) {
+    .transcript-ticker-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* Sidebar — desktop sticky panel that scrolls internally. Mobile uses a
+     plain stacked layout so we don't trap the user inside a short panel. */
+  .sidecar {
+    position: relative;
+  }
+  @media (min-width: 1024px) {
+    .sidecar {
+      position: sticky;
+      top: 5.5rem;
+      max-height: calc(100vh - 6.5rem);
+      display: flex;
+      flex-direction: column;
+    }
+    .sidecar-scroll {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(34, 211, 238, 0.3) transparent;
+    }
+    .sidecar-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .sidecar-scroll::-webkit-scrollbar-thumb {
+      background: rgba(34, 211, 238, 0.25);
+      border-radius: 3px;
+    }
+  }
 }

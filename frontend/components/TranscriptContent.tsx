@@ -64,11 +64,17 @@ export function TranscriptContent({ content }: { content: string }) {
 /* ───────────────────────── Ticker grid ─────────────────────────────────── */
 
 function TickerGrid({ cards }: { cards: TickerCard[] }) {
+  // .transcript-container + .transcript-ticker-grid switch columns based on
+  // the parent container's width (container queries) instead of viewport —
+  // so the same grid renders 3 cols on a wide /agents page and 1 col in a
+  // narrow /debate sidecar.
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-      {cards.map((c) => (
-        <TickerCardView key={c.ticker} card={c} />
-      ))}
+    <div className="transcript-container">
+      <div className="transcript-ticker-grid">
+        {cards.map((c) => (
+          <TickerCardView key={c.ticker} card={c} />
+        ))}
+      </div>
     </div>
   );
 }
