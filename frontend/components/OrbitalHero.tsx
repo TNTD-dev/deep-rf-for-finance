@@ -36,8 +36,15 @@ const RING_RADII = [78, 140, 210]; // px
 const TICKERS = ["VCB", "FPT", "HPG", "VIC", "VNM"];
 
 function polar(r: number, deg: number): { x: number; y: number } {
+  // Round to 2 decimals so the serialized transform string is identical
+  // between SSR (Node V8) and CSR (browser V8). Math.cos / Math.sin can
+  // diverge in the last fractional digit across engines, which Next 16
+  // reports as a hydration mismatch on the orbital dot transforms.
   const rad = (deg - 90) * (Math.PI / 180);
-  return { x: r * Math.cos(rad), y: r * Math.sin(rad) };
+  return {
+    x: Math.round(r * Math.cos(rad) * 100) / 100,
+    y: Math.round(r * Math.sin(rad) * 100) / 100,
+  };
 }
 
 export function OrbitalHero() {
