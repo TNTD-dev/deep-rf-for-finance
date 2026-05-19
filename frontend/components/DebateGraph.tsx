@@ -25,16 +25,16 @@ type NodeDef = {
   label: string;
 };
 
-// Layout — 6 columns × 4 rows of "slots", 8 nodes placed by hand.
+// Layout tuned for the new 320 viewBox height.
 const NODES: NodeDef[] = [
-  { role: "technical_analyst", x: 80, y: 80, label: "Technical" },
-  { role: "news_sentiment_analyst", x: 80, y: 200, label: "News" },
-  { role: "fundamental_analyst", x: 80, y: 320, label: "Fundamental" },
-  { role: "bullish_researcher", x: 280, y: 140, label: "Bull" },
-  { role: "bearish_researcher", x: 280, y: 260, label: "Bear" },
-  { role: "trader", x: 480, y: 200, label: "Trader" },
-  { role: "risk_manager", x: 660, y: 200, label: "Risk" },
-  { role: "portfolio_manager", x: 840, y: 200, label: "Portfolio" },
+  { role: "technical_analyst", x: 80, y: 60, label: "Technical" },
+  { role: "news_sentiment_analyst", x: 80, y: 160, label: "News" },
+  { role: "fundamental_analyst", x: 80, y: 260, label: "Fundamental" },
+  { role: "bullish_researcher", x: 280, y: 110, label: "Bull" },
+  { role: "bearish_researcher", x: 280, y: 210, label: "Bear" },
+  { role: "trader", x: 480, y: 160, label: "Trader" },
+  { role: "risk_manager", x: 660, y: 160, label: "Risk" },
+  { role: "portfolio_manager", x: 840, y: 160, label: "Portfolio" },
 ];
 
 // Edges encode the actual LangGraph topology (PKG-8 src/llm/multi_agent/graph.py).
@@ -51,9 +51,9 @@ const EDGES: [string, string][] = [
   ["risk_manager", "portfolio_manager"],
 ];
 
-const NODE_R = 36;
+const NODE_R = 30;
 const VIEWBOX_W = 920;
-const VIEWBOX_H = 400;
+const VIEWBOX_H = 320;
 
 export function DebateGraph({
   transcript,
@@ -119,7 +119,7 @@ export function DebateGraph({
             x1={x}
             y1={20}
             x2={x}
-            y2={VIEWBOX_H - 40}
+            y2={VIEWBOX_H - 30}
             stroke="rgba(34,211,238,0.06)"
             strokeWidth="1"
             strokeDasharray="2 6"
