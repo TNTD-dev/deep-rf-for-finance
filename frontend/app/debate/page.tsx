@@ -225,61 +225,122 @@ function DebateInner({ date }: { date: string }) {
     if (idx !== -1) setActiveIdx(idx);
   };
 
+  const SHORT: Record<string, string> = {
+    technical_analyst: "Technical analyst",
+    news_sentiment_analyst: "News sentiment",
+    fundamental_analyst: "Fundamental analyst",
+    bullish_researcher: "Bull researcher",
+    bearish_researcher: "Bear researcher",
+    trader: "Trader",
+    risk_manager: "Risk manager",
+    portfolio_manager: "Portfolio manager",
+  };
+  const activeColor = activeEntry ? roleColor(activeEntry.role) : "#22d3ee";
+
   return (
-    <div className="space-y-6">
-      {/* Pipeline graph — sticks to the top of the column while the entry
-          scrolls beneath, but only on lg+ (mobile has limited height). */}
-      <ScrollFade>
-        <GlassPanel>
-          <div className="p-6">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <Kicker>Decision flow · click any role</Kicker>
-              <p className="font-mono text-[11px] text-zinc-500">
-                <kbd className="rounded border border-cyan-400/20 bg-cyan-400/5 px-1.5 py-0.5 text-cyan-300">
-                  ←
-                </kbd>{" "}
-                <kbd className="rounded border border-cyan-400/20 bg-cyan-400/5 px-1.5 py-0.5 text-cyan-300">
-                  →
-                </kbd>{" "}
-                to step through
+    // Split-pane on lg: canvas on the left, sidecar on the right. Stacks
+    // vertically on smaller screens so mobile users still get the full flow.
+    <div className="grid gap-6 lg:grid-cols-[1fr_30rem]">
+      {/* ─────────────── CANVAS (left column) ─────────────── */}
+      <div className="space-y-5">
+        <ScrollFade>
+          <GlassPanel>
+            <div className="p-6">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <Kicker>Decision flow · click any role</Kicker>
+                <p className="font-mono text-[11px] text-zinc-500">
+                  <kbd className="rounded border border-cyan-400/20 bg-cyan-400/5 px-1.5 py-0.5 text-cyan-300">
+                    ←
+                  </kbd>{" "}
+                  <kbd className="rounded border border-cyan-400/20 bg-cyan-400/5 px-1.5 py-0.5 text-cyan-300">
+                    →
+                  </kbd>{" "}
+                  to step
+                </p>
+              </div>
+              <div className="mt-5">
+                <DebateGraph
+                  transcript={transcript}
+                  activeRole={activeEntry?.role ?? null}
+                  onSelect={onSelectRole}
+                />
+              </div>
+            </div>
+          </GlassPanel>
+        </ScrollFade>
+
+        <NavStrip
+          entries={entries}
+          rounds={rounds}
+          activeIdx={activeIdx}
+          onSelect={setActiveIdx}
+        />
+      </div>
+
+      {/* ─────────────── SIDECAR (right column) ─────────────── */}
+      <aside className="sidecar">
+        <div className="glass-shell h-full">
+          <div className="glass-inner h-full flex flex-col">
+            {/* Sticky header inside the sidebar */}
+            <div className="border-b border-cyan-400/15 px-5 py-4 flex items-center gap-3 shrink-0">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{
+                  background: activeColor,
+                  boxShadow: `0 0 10px ${activeColor}`,
+                }}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="label-mono text-[10px]">Now showing</p>
+                <p
+                  className="text-sm font-semibold text-white truncate"
+                  style={{ fontFamily: "var(--font-grotesk)" }}
+                >
+                  {activeEntry
+                    ? (SHORT[activeEntry.role] ?? activeEntry.role)
+                    : "—"}
+                  {rounds[activeIdx] !== undefined && (
+                    <span className="ml-2 rounded bg-cyan-400/15 px-1.5 py-0.5 font-mono text-[10px] text-cyan-200">
+                      R{rounds[activeIdx]}
+                    </span>
+                  )}
+                </p>
+              </div>
+              <p className="font-mono text-xs text-zinc-500 tabular-nums shrink-0">
+                <span className="text-cyan-300">
+                  {String(activeIdx + 1).padStart(2, "0")}
+                </span>{" "}
+                <span className="text-zinc-700">/</span>{" "}
+                {String(total).padStart(2, "0")}
               </p>
             </div>
-            <div className="mt-5">
-              <DebateGraph
-                transcript={transcript}
-                activeRole={activeEntry?.role ?? null}
-                onSelect={onSelectRole}
+
+            {/* Scrollable content — key={activeIdx} forces a fresh fade-in
+                on entry change. */}
+            <div className="sidecar-scroll px-5 py-5" key={activeIdx}>
+              {activeEntry && (
+                <div className="scroll-fade is-visible">
+                  <DebateEntry
+                    entry={activeEntry}
+                    round={rounds[activeIdx]}
+                    bare
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Sticky footer with prev/next */}
+            <div className="border-t border-cyan-400/15 px-5 py-3 shrink-0">
+              <NavControls
+                activeIdx={activeIdx}
+                total={total}
+                onPrev={() => go(activeIdx - 1)}
+                onNext={() => go(activeIdx + 1)}
               />
             </div>
           </div>
-        </GlassPanel>
-      </ScrollFade>
-
-      {/* Compact nav strip — horizontally scrollable, every entry as a pill
-          with role color, round marker, and active glow. */}
-      <NavStrip
-        entries={entries}
-        rounds={rounds}
-        activeIdx={activeIdx}
-        onSelect={setActiveIdx}
-      />
-
-      {/* Active entry — exactly one at a time, no scroll-through. */}
-      {activeEntry && (
-        <div className="relative">
-          <DebateEntry
-            entry={activeEntry}
-            round={rounds[activeIdx]}
-            active
-          />
-          <NavControls
-            activeIdx={activeIdx}
-            total={total}
-            onPrev={() => go(activeIdx - 1)}
-            onNext={() => go(activeIdx + 1)}
-          />
         </div>
-      )}
+      </aside>
     </div>
   );
 }

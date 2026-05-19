@@ -10,6 +10,8 @@ interface Props {
   round?: number;
   /** Highlight this entry — the parent's DebateGraph just selected it. */
   active?: boolean;
+  /** Strip the outer frame — used inside the sidecar which provides its own. */
+  bare?: boolean;
 }
 
 function fmtTime(iso: string | undefined | null): string {
@@ -18,19 +20,20 @@ function fmtTime(iso: string | undefined | null): string {
   return iso.slice(11, 19);
 }
 
-export function DebateEntry({ entry, round, active }: Props) {
+export function DebateEntry({ entry, round, active, bare }: Props) {
   const hasDecision = entry.decision !== undefined;
   const hasContent = !!entry.content && entry.content.trim().length > 0;
 
-  return (
-    <article
-      data-role={entry.role}
-      className={`rounded-md border bg-black/40 backdrop-blur-sm p-4 transition-all ${
+  const wrapperCls = bare
+    ? ""
+    : `rounded-md border bg-black/40 backdrop-blur-sm p-4 transition-all ${
         active
           ? "border-cyan-400/70 ring-1 ring-cyan-400/30 glow-cyan"
           : "border-cyan-400/15 hover:border-cyan-400/30"
-      }`}
-    >
+      }`;
+
+  return (
+    <article data-role={entry.role} className={wrapperCls}>
       <header className="flex flex-wrap items-center gap-3">
         <RoleBadge role={entry.role} round={round} />
         {entry.model && (
