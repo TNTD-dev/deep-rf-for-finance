@@ -1,14 +1,16 @@
 # Notebooks — defense-grade walkthroughs
 
-Bốn notebook, mỗi notebook một vai trò. **Đây là figure factory + Q&A reference cho buổi defense 31/05** — không phải exploratory. Mọi figure / số liệu trong slide sẽ trỏ về một notebook để defend khi thầy hỏi.
+Sáu notebook, mỗi notebook một vai trò. **Đây là figure factory + Q&A reference cho buổi defense 31/05** — không phải exploratory. Mọi figure / số liệu trong slide sẽ trỏ về một notebook để defend khi thầy hỏi.
 
 ```
 notebooks/
   _shared.py                  utilities (frozen-data loaders, color palette, figure savers)
   01_data.ipynb               Person 1     — VN30 dataset + news coverage + lookahead-safe alignment
-  02_strategies.ipynb         Duc          — 8 agents architecture + sample decisions
-  03_results.ipynb            Person 1     — comparison analysis, slide chapter 5
-  04_invariants.ipynb         Person 2     — no-lookahead, reproducibility, VN rules sign-off
+  02_baselines.ipynb          Person 1     — buy_and_hold + equal_weight + random (3 baselines)
+  03_rl.ipynb                 Duc          — DDPG + PPO architecture + training curves + saturated tanh
+  04_llm.ipynb                Duc          — zero-shot → single-agentic → multi-agent (8-role debate)
+  05_results.ipynb            Person 1     — comparison analysis (slide chapter 5)
+  06_invariants.ipynb         Person 2     — no-lookahead, reproducibility, VN rules sign-off
 ```
 
 ## Workflow (agent-driven)
@@ -55,12 +57,15 @@ Mọi figure sinh ra phải lưu vào `report/figures/` với prefix là noteboo
 
 ```
 report/figures/
-  01__vn30_overview.png       ← notebook 01
+  01__split_timeline.png         ← notebook 01 (data)
   01__news_coverage_heatmap.png
-  02__multi_agent_topology.png ← notebook 02
-  03__cumret_bar.png          ← notebook 03 (slide chapter 5)
-  03__sharpe_vs_return.png
-  04__lookahead_proof.png     ← notebook 04
+  02__baselines_compare.png      ← notebook 02 (baselines)
+  03__ddpg_arch.png              ← notebook 03 (RL)
+  03__training_curves.png
+  04__multi_agent_topology.png   ← notebook 04 (LLM)
+  05__cumret_bar.png             ← notebook 05 (results — slide ch5)
+  05__equity_curves.png
+  06__lookahead_proof.png        ← notebook 06 (invariants)
   ...
 ```
 
@@ -97,13 +102,23 @@ Cell cuối mỗi notebook **bắt buộc** có Q&A section:
 
 ## Owner contract
 
-| Person | Notebook | Effort | Hạn |
+| Person | Notebooks | Effort | Hạn |
 |---|---|---|---|
-| **Duc** | 02_strategies | 2 day | 22/05 |
-| **Person 1** | 01_data + 03_results | 2.5 day | 25/05 |
-| **Person 2** | 04_invariants | 1 day | 23/05 |
+| **Duc** | 03_rl + 04_llm | 2 day | 22/05 |
+| **Person 1** | 01_data + 02_baselines + 05_results | 3 day | 25/05 |
+| **Person 2** | 06_invariants | 1 day | 23/05 |
 
-Sau 25/05: cả 4 notebook lock + Person 1 dùng các figure đã export để build slide.
+Sau 25/05: cả 6 notebook lock + Person 1 dùng các figure đã export để build slide.
+
+### Vì sao Person 1 nhận 3 notebooks?
+- 01_data và 02_baselines là ramp-up — code đơn giản, vừa làm vừa quen codebase
+- Hiểu rõ data + baselines → viết Ch4 Implementation tốt hơn
+- 05_results là Ch5 trực tiếp → người viết report nên tự tay làm bảng + chart
+
+### Vì sao Duc giữ 03_rl và 04_llm?
+- 03_rl: cần đọc stable-baselines3 internals + giải thích DDPG saturated tanh
+- 04_llm: cần đọc LangGraph state + multi-agent topology + tool calling
+- Cả 2 đều technical-heavy → người code (Duc) làm nhanh hơn
 
 ## Validation trước khi commit
 
