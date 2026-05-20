@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DRL vs LLM/Agentic Trading — Architecture Diagram</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: #020617;
+      min-height: 100vh;
+      padding: 2rem;
+      color: white;
+    }
+    .container { max-width: 1380px; margin: 0 auto; }
+    .header { margin-bottom: 2rem; }
+    .header-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
+    .pulse-dot {
+      width: 12px; height: 12px; background: #22d3ee;
+      border-radius: 50%; animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.025em; }
+    .subtitle { color: #94a3b8; font-size: 0.85rem; margin-left: 1.75rem; }
+    .diagram-container {
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 1rem;
+      border: 1px solid #1e293b;
+      padding: 1.5rem;
+      overflow-x: auto;
+    }
+    svg { width: 100%; min-width: 1180px; display: block; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 0.75rem;
+      border: 1px solid #1e293b;
+      padding: 1.25rem;
+    }
+    .card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .card-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .card-dot.cyan { background: #22d3ee; }
+    .card-dot.emerald { background: #34d399; }
+    .card-dot.violet { background: #a78bfa; }
+    .card-dot.amber { background: #fbbf24; }
+    .card-dot.rose { background: #fb7185; }
+    .card-dot.orange { background: #fb923c; }
+    .card h3 { font-size: 0.85rem; font-weight: 600; }
+    .card ul { list-style: none; color: #94a3b8; font-size: 0.72rem; line-height: 1.5; }
+    .card li { margin-bottom: 0.375rem; }
+    .footer { text-align: center; margin-top: 1.5rem; color: #475569; font-size: 0.72rem; }
+    .toolbar { display: flex; gap: 0.5rem; margin-left: auto; flex-shrink: 0; align-items: center; }
+    .toolbar-toggle {
+      background: transparent; border: none; color: #475569; cursor: pointer;
+      font-size: 1.25rem; line-height: 1; padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem; transition: color 0.2s, background 0.2s;
+    }
+    .toolbar-toggle:hover { color: #94a3b8; background: rgba(30, 41, 59, 0.5); }
+    .toolbar-actions { display: none; gap: 0.5rem; }
+    .toolbar.expanded .toolbar-actions { display: flex; }
+    .toolbar-actions button {
+      background: rgba(30, 41, 59, 0.8); border: 1px solid #334155;
+      color: #94a3b8; padding: 0.375rem 0.75rem; border-radius: 0.375rem;
+      font-family: inherit; font-size: 0.75rem; cursor: pointer;
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .toolbar-actions button:hover {
+      background: rgba(51, 65, 85, 0.8); color: white; border-color: #475569;
+    }
+    @media print {
+      body { background: #020617; padding: 1rem; }
+      .toolbar { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="report-container">
+    <div class="header">
+      <div class="header-row">
+        <div class="pulse-dot"></div>
+        <h1>DRL vs LLM/Agentic Trading — System Architecture</h1>
+        <div class="toolbar">
+          <div class="toolbar-actions">
+            <button onclick="copyAsImage(this)">📋 Copy</button>
+            <button onclick="downloadPNG(this)">🖼️ PNG</button>
+            <button onclick="downloadPDF(this)">📄 PDF</button>
+          </div>
+          <button class="toolbar-toggle" onclick="this.parentElement.classList.toggle('expanded')" title="Export options" aria-label="Export options">⋯</button>
+        </div>
+      </div>
+      <p class="subtitle">DDPG vs 3 LLM/agentic strategies · Vietnam VN30 · shared Gymnasium env · FastAPI + Next.js full-stack demo</p>
+    </div>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1340 1690">
+        <defs>
+          <marker id="ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+          </marker>
+          <marker id="ah-amber" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#fbbf24" />
+          </marker>
+          <marker id="ah-rose" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#fb7185" />
+          </marker>
+          <marker id="ah-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#34d399" />
+          </marker>
+          <marker id="ah-violet" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#a78bfa" />
+          </marker>
+          <marker id="ah-orange-s" markerWidth="9" markerHeight="7" refX="2" refY="3.5" orient="auto">
+            <polygon points="9 0, 0 3.5, 9 7" fill="#fb923c" />
+          </marker>
+          <marker id="ah-orange-e" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+            <polygon points="0 0, 9 3.5, 0 7" fill="#fb923c" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- ============ LAYER REGION BANDS ============ -->
+        <rect x="20" y="24"   width="1300" height="116" rx="12" fill="rgba(251,191,36,0.05)" stroke="#fbbf24" stroke-width="1" stroke-dasharray="8,4"/>
+        <rect x="20" y="164"  width="1300" height="212" rx="12" fill="rgba(6,78,59,0.10)"   stroke="#34d399" stroke-width="1" stroke-dasharray="8,4"/>
+        <rect x="20" y="400"  width="1300" height="735" rx="12" fill="rgba(6,78,59,0.07)"   stroke="#34d399" stroke-width="1" stroke-dasharray="8,4"/>
+        <rect x="20" y="1159" width="1300" height="210" rx="12" fill="rgba(6,78,59,0.10)"   stroke="#34d399" stroke-width="1" stroke-dasharray="8,4"/>
+        <rect x="20" y="1393" width="1300" height="216" rx="12" fill="rgba(8,51,68,0.18)"   stroke="#22d3ee" stroke-width="1" stroke-dasharray="8,4"/>
+
+        <text x="36" y="44"   fill="#fbbf24" font-size="11" font-weight="700">① EXTERNAL SERVICES &amp; API INTEGRATIONS</text>
+        <text x="36" y="184"  fill="#34d399" font-size="11" font-weight="700">② DATA PIPELINE  ·  src/data_pipeline/  ·  scripts/fetch_*.py</text>
+        <text x="36" y="420"  fill="#34d399" font-size="11" font-weight="700">③ CORE / RESEARCH LAYER  ·  src/  —  shared Gymnasium env · pluggable agents · training · backtest</text>
+        <text x="36" y="1179" fill="#34d399" font-size="11" font-weight="700">④ SERVICE LAYER  ·  backend/  —  FastAPI + uvicorn · SSE streaming · localhost:8000</text>
+        <text x="36" y="1413" fill="#22d3ee" font-size="11" font-weight="700">⑤ PRESENTATION  ·  frontend/  —  Next.js 15 (App Router) · Tailwind · shadcn/ui · Recharts</text>
+
+        <!-- ============ INTER-LAYER ARROWS (drawn before boxes) ============ -->
+        <!-- S1 -> S2 data-source feeds -->
+        <line x1="415"  y1="124" x2="415"  y2="198" stroke="#fbbf24" stroke-width="1.4" stroke-dasharray="4,3" marker-end="url(#ah-amber)"/>
+        <line x1="670"  y1="124" x2="670"  y2="198" stroke="#fbbf24" stroke-width="1.4" stroke-dasharray="4,3" marker-end="url(#ah-amber)"/>
+        <line x1="925"  y1="124" x2="925"  y2="198" stroke="#fbbf24" stroke-width="1.4" stroke-dasharray="4,3" marker-end="url(#ah-amber)"/>
+        <line x1="1180" y1="124" x2="1180" y2="198" stroke="#fbbf24" stroke-width="1.4" stroke-dasharray="4,3" marker-end="url(#ah-amber)"/>
+
+        <!-- OpenAI -> LLM Shared Core (left margin routed) -->
+        <path d="M 160 124 L 160 134 Q 160 140 153 140 L 41 140 Q 34 140 34 147 L 34 463 Q 34 470 41 470 L 44 470"
+              fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#ah-amber)"/>
+        <text x="42" y="158" fill="#fbbf24" font-size="8">OpenAI Chat API ↓</text>
+
+        <!-- parquet -> env_data_loader -->
+        <line x1="1086" y1="354" x2="1110" y2="438" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#ah-violet)"/>
+        <text x="1108" y="400" fill="#94a3b8" font-size="8">load</text>
+
+        <!-- env_data_loader -> VNTradingEnv -->
+        <line x1="958" y1="477" x2="924" y2="477" stroke="#34d399" stroke-width="1.5" marker-end="url(#ah-green)"/>
+        <text x="941" y="470" fill="#94a3b8" font-size="8" text-anchor="middle">MarketData</text>
+
+        <!-- VNTradingEnv <-> agents -->
+        <line x1="670" y1="516" x2="670" y2="542" stroke="#fb923c" stroke-width="1.6" marker-start="url(#ah-orange-s)" marker-end="url(#ah-orange-e)"/>
+        <text x="680" y="533" fill="#94a3b8" font-size="8">obs 56-d ↓  ↑ action</text>
+
+        <!-- LLM core -> 3 LLM agents -->
+        <path d="M 212 516 L 212 528 L 564 528 L 564 542" fill="none" stroke="#34d399" stroke-width="1.4" stroke-dasharray="4,3" marker-end="url(#ah-green)"/>
+        <text x="300" y="524" fill="#94a3b8" font-size="8">shared by zero-shot · single-agentic · multi-agent</text>
+
+        <!-- Multi-agent agent -> LangGraph nested box -->
+        <line x1="988" y1="616" x2="988" y2="646" stroke="#fb923c" stroke-width="1.6" marker-end="url(#ah-orange-e)"/>
+
+        <!-- Core assembly -> Eval (run_all) -->
+        <path d="M 670 894 L 670 925 L 790 925 L 790 954" fill="none" stroke="#34d399" stroke-width="1.5" marker-end="url(#ah-green)"/>
+        <text x="676" y="918" fill="#94a3b8" font-size="8">every agent × VNTradingEnv over test period</text>
+
+        <!-- Eval results -> Service -->
+        <line x1="990" y1="1088" x2="990" y2="1192" stroke="#a78bfa" stroke-width="1.6" marker-end="url(#ah-violet)"/>
+        <text x="999" y="1140" fill="#94a3b8" font-size="8">metrics.json + parquet + transcripts → file cache</text>
+
+        <!-- live/run invokes the LangGraph live (right-margin routed) -->
+        <path d="M 1041 1230 L 1305 1230 Q 1313 1230 1313 1222 L 1313 896 Q 1313 888 1305 888 L 1294 888"
+              fill="none" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#ah-rose)"/>
+        <text x="1170" y="1224" fill="#fb7185" font-size="8">live mode invokes graph ↑</text>
+
+        <!-- S4 -> S5 -->
+        <line x1="415" y1="1370" x2="415" y2="1429" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#ah)"/>
+        <text x="423" y="1402" fill="#94a3b8" font-size="8">REST / JSON · lib/api.ts</text>
+        <line x1="925" y1="1370" x2="925" y2="1429" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#ah-rose)"/>
+        <text x="933" y="1402" fill="#fb7185" font-size="8">SSE stream · lib/sse.ts</text>
+
+        <!-- ============ ① EXTERNAL SERVICES ============ -->
+        <!-- OpenAI -->
+        <rect x="44" y="60" width="232" height="62" rx="6" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="160" y="84"  fill="white"   font-size="11" font-weight="600" text-anchor="middle">OpenAI API</text>
+        <text x="160" y="100" fill="#94a3b8" font-size="8"  text-anchor="middle">gpt-4o · gpt-4o-mini  (model-locked)</text>
+        <text x="160" y="113" fill="#fbbf24" font-size="8"  text-anchor="middle">cutoff Oct-2023 → no data leakage</text>
+        <!-- vnstock v4 -->
+        <rect x="299" y="60" width="232" height="62" rx="6" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="415" y="84"  fill="white"   font-size="11" font-weight="600" text-anchor="middle">vnstock v4.0.0</text>
+        <text x="415" y="100" fill="#94a3b8" font-size="8"  text-anchor="middle">OHLCV prices · VN index</text>
+        <text x="415" y="113" fill="#fbbf24" font-size="8"  text-anchor="middle">KBS primary → VCI fallback</text>
+        <!-- Finance API -->
+        <rect x="554" y="60" width="232" height="62" rx="6" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="670" y="84"  fill="white"   font-size="11" font-weight="600" text-anchor="middle">vnstock Finance API</text>
+        <text x="670" y="100" fill="#94a3b8" font-size="8"  text-anchor="middle">quarterly fundamentals</text>
+        <text x="670" y="113" fill="#fbbf24" font-size="8"  text-anchor="middle">last 4 quarters (community tier)</text>
+        <!-- CafeF / VietStock -->
+        <rect x="809" y="60" width="232" height="62" rx="6" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="925" y="84"  fill="white"   font-size="11" font-weight="600" text-anchor="middle">CafeF / VietStock</text>
+        <text x="925" y="100" fill="#94a3b8" font-size="8"  text-anchor="middle">news sitemap scrape</text>
+        <text x="925" y="113" fill="#fbbf24" font-size="8"  text-anchor="middle">test-period headlines</text>
+        <!-- vnstock_news RSS -->
+        <rect x="1064" y="60" width="232" height="62" rx="6" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="1180" y="84"  fill="white"   font-size="11" font-weight="600" text-anchor="middle">vnstock_news RSS</text>
+        <text x="1180" y="100" fill="#94a3b8" font-size="8"  text-anchor="middle">live news feed</text>
+        <text x="1180" y="113" fill="#fbbf24" font-size="8"  text-anchor="middle">live-mode only</text>
+
+        <!-- ============ ② DATA PIPELINE — row 1 ============ -->
+        <rect x="44" y="200" width="232" height="64" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="160" y="224" fill="white"   font-size="10.5" font-weight="600" text-anchor="middle">indicators.py</text>
+        <text x="160" y="241" fill="#94a3b8" font-size="8"  text-anchor="middle">ta lib: RSI · MACD · SMA</text>
+        <text x="160" y="254" fill="#94a3b8" font-size="8"  text-anchor="middle">Bollinger · ATR → 9 z-scored cols</text>
+
+        <rect x="299" y="200" width="232" height="64" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="415" y="224" fill="white"   font-size="10.5" font-weight="600" text-anchor="middle">vnstock_prices.py</text>
+        <text x="415" y="241" fill="#94a3b8" font-size="8"  text-anchor="middle">fetch_prices() · retry</text>
+        <text x="415" y="254" fill="#94a3b8" font-size="8"  text-anchor="middle">backend auto-fallback</text>
+
+        <rect x="554" y="200" width="232" height="64" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="670" y="224" fill="white"   font-size="10.5" font-weight="600" text-anchor="middle">vnstock_fundamentals.py</text>
+        <text x="670" y="241" fill="#94a3b8" font-size="8"  text-anchor="middle">fetch_fundamentals()</text>
+        <text x="670" y="254" fill="#94a3b8" font-size="8"  text-anchor="middle">4-quarter snapshot</text>
+
+        <rect x="809" y="200" width="232" height="64" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="925" y="224" fill="white"   font-size="10.5" font-weight="600" text-anchor="middle">news_scraper.py</text>
+        <text x="925" y="241" fill="#94a3b8" font-size="8"  text-anchor="middle">scrape_cafef()</text>
+        <text x="925" y="254" fill="#94a3b8" font-size="8"  text-anchor="middle">scrape_vietstock()</text>
+
+        <rect x="1064" y="200" width="232" height="64" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="1180" y="224" fill="white"   font-size="10.5" font-weight="600" text-anchor="middle">news_fetch / news_live</text>
+        <text x="1180" y="241" fill="#94a3b8" font-size="8"  text-anchor="middle">RSS + sitemap fetch</text>
+        <text x="1180" y="254" fill="#94a3b8" font-size="8"  text-anchor="middle">fetch_live_news()</text>
+
+        <!-- ② DATA PIPELINE — row 2 -->
+        <rect x="44" y="288" width="360" height="64" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="224" y="312" fill="white"   font-size="10.5" font-weight="600" text-anchor="middle">calendar.py</text>
+        <text x="224" y="329" fill="#94a3b8" font-size="8"  text-anchor="middle">VN trading-calendar align</text>
+        <text x="224" y="342" fill="#94a3b8" font-size="8"  text-anchor="middle">slice lookahead-safe windows</text>
+
+        <rect x="440" y="288" width="400" height="64" rx="6" fill="rgba(6,78,59,0.4)" stroke="#fb7185" stroke-width="1.5"/>
+        <text x="640" y="312" fill="white"   font-size="10.5" font-weight="600" text-anchor="middle">news_align.py</text>
+        <text x="640" y="329" fill="#94a3b8" font-size="8"  text-anchor="middle">ticker keyword/alias tag · TZ normalize (Asia/HCM)</text>
+        <text x="640" y="342" fill="#fb7185" font-size="8"  text-anchor="middle">D+2 visibility gate — news on day D visible from D+2 open</text>
+
+        <rect x="876" y="288" width="420" height="64" rx="6" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="1086" y="312" fill="white"   font-size="10.5" font-weight="600" text-anchor="middle">data/processed/*.parquet</text>
+        <text x="1086" y="329" fill="#94a3b8" font-size="8"  text-anchor="middle">prices.parquet · news.parquet  (pandas / pyarrow)</text>
+        <text x="1086" y="342" fill="#a78bfa" font-size="8"  text-anchor="middle">cached processed dataset · gitignored</text>
+
+        <line x1="404" y1="320" x2="438" y2="320" stroke="#34d399" stroke-width="1.4" marker-end="url(#ah-green)"/>
+        <line x1="840" y1="320" x2="874" y2="320" stroke="#34d399" stroke-width="1.4" marker-end="url(#ah-green)"/>
+
+        <!-- ============ ③ CORE — C1 row ============ -->
+        <rect x="44" y="440" width="336" height="74" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="212" y="462" fill="white"   font-size="11" font-weight="600" text-anchor="middle">LLM Shared Core · src/llm/</text>
+        <text x="212" y="479" fill="#94a3b8" font-size="8"  text-anchor="middle">client.py — model whitelist + exp-backoff retry</text>
+        <text x="212" y="492" fill="#94a3b8" font-size="8"  text-anchor="middle">serialize.py · parser.py · metrics.py (cost/latency)</text>
+        <text x="212" y="505" fill="#fb7185" font-size="8"  text-anchor="middle">tools.py — LookaheadSafeTools (4 tools)</text>
+
+        <rect x="420" y="440" width="500" height="74" rx="7" fill="rgba(6,78,59,0.55)" stroke="#34d399" stroke-width="2.6"/>
+        <text x="670" y="461" fill="white"   font-size="12" font-weight="700" text-anchor="middle">VNTradingEnv  ·  Gymnasium MDP</text>
+        <text x="670" y="478" fill="#94a3b8" font-size="8"  text-anchor="middle">obs 56-d float32  ·  action Box(-1,1,5) target weights</text>
+        <text x="670" y="491" fill="#fb7185" font-size="8"  text-anchor="middle">VN rules: ±7% band · lot-100 · fees buy 0.15% / sell 0.25%</text>
+        <text x="670" y="504" fill="#94a3b8" font-size="8"  text-anchor="middle">lookahead-safe state  ·  reward = log(pv_t / pv_t-1)</text>
+
+        <rect x="960" y="440" width="336" height="74" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="1128" y="462" fill="white"   font-size="11" font-weight="600" text-anchor="middle">env_data_loader.py</text>
+        <text x="1128" y="479" fill="#94a3b8" font-size="8"  text-anchor="middle">MarketData — parquet → numpy arrays</text>
+        <text x="1128" y="492" fill="#94a3b8" font-size="8"  text-anchor="middle">close/high/low · z-scored indicators</text>
+        <text x="1128" y="505" fill="#94a3b8" font-size="8"  text-anchor="middle">warmup offset · train/val/test split</text>
+
+        <!-- ③ CORE — C2 pluggable agents -->
+        <text x="44" y="536" fill="#fb923c" font-size="9" font-weight="600">Pluggable agents — common Agent protocol  decide(obs, info) → action  (env is agnostic to RL vs LLM)</text>
+
+        <rect x="44" y="544" width="192" height="70" rx="6" fill="rgba(251,146,60,0.22)" stroke="#fb923c" stroke-width="1.5"/>
+        <text x="140" y="568" fill="white"   font-size="11" font-weight="600" text-anchor="middle">DDPG</text>
+        <text x="140" y="585" fill="#94a3b8" font-size="8"  text-anchor="middle">stable-baselines3</text>
+        <text x="140" y="598" fill="#fb923c" font-size="8"  text-anchor="middle">daily · trained policy</text>
+        <text x="140" y="609" fill="#94a3b8" font-size="7.5" text-anchor="middle">paper Xiong et al — primary RL</text>
+
+        <rect x="256" y="544" width="192" height="70" rx="6" fill="rgba(251,146,60,0.22)" stroke="#fb923c" stroke-width="1.5"/>
+        <text x="352" y="568" fill="white"   font-size="11" font-weight="600" text-anchor="middle">PPO</text>
+        <text x="352" y="585" fill="#94a3b8" font-size="8"  text-anchor="middle">stable-baselines3</text>
+        <text x="352" y="598" fill="#fb923c" font-size="8"  text-anchor="middle">daily · backup RL</text>
+        <text x="352" y="609" fill="#94a3b8" font-size="7.5" text-anchor="middle">fallback if DDPG diverges</text>
+
+        <rect x="468" y="544" width="192" height="70" rx="6" fill="rgba(251,146,60,0.22)" stroke="#fb923c" stroke-width="1.5"/>
+        <text x="564" y="568" fill="white"   font-size="11" font-weight="600" text-anchor="middle">Zero-Shot LLM</text>
+        <text x="564" y="585" fill="#94a3b8" font-size="8"  text-anchor="middle">gpt-4o · state→text prompt</text>
+        <text x="564" y="598" fill="#fb923c" font-size="8"  text-anchor="middle">weekly · JSON weights</text>
+        <text x="564" y="609" fill="#94a3b8" font-size="7.5" text-anchor="middle">no tools · fallback hold</text>
+
+        <rect x="680" y="544" width="192" height="70" rx="6" fill="rgba(251,146,60,0.22)" stroke="#fb923c" stroke-width="1.5"/>
+        <text x="776" y="568" fill="white"   font-size="11" font-weight="600" text-anchor="middle">Single-Agentic LLM</text>
+        <text x="776" y="585" fill="#94a3b8" font-size="8"  text-anchor="middle">gpt-4o · 4 tool-calls</text>
+        <text x="776" y="598" fill="#fb923c" font-size="8"  text-anchor="middle">weekly · tool-call audit</text>
+        <text x="776" y="609" fill="#94a3b8" font-size="7.5" text-anchor="middle">≤10 iterations · hallucination log</text>
+
+        <rect x="892" y="544" width="192" height="70" rx="6" fill="rgba(251,146,60,0.35)" stroke="#fb923c" stroke-width="2.2"/>
+        <text x="988" y="568" fill="white"   font-size="11" font-weight="600" text-anchor="middle">Multi-Agent LLM</text>
+        <text x="988" y="585" fill="#94a3b8" font-size="8"  text-anchor="middle">LangGraph · 8 roles</text>
+        <text x="988" y="598" fill="#fb923c" font-size="8"  text-anchor="middle">weekly · full transcript</text>
+        <text x="988" y="609" fill="#94a3b8" font-size="7.5" text-anchor="middle">TradingAgents-style ↓</text>
+
+        <rect x="1104" y="544" width="192" height="70" rx="6" fill="rgba(251,146,60,0.22)" stroke="#fb923c" stroke-width="1.5"/>
+        <text x="1200" y="568" fill="white"   font-size="11" font-weight="600" text-anchor="middle">Baselines</text>
+        <text x="1200" y="585" fill="#94a3b8" font-size="8"  text-anchor="middle">BuyAndHold · EqualWeight</text>
+        <text x="1200" y="598" fill="#94a3b8" font-size="8"  text-anchor="middle">RandomAgent (smoke)</text>
+        <text x="1200" y="609" fill="#fb923c" font-size="7.5" text-anchor="middle">src/baselines.py</text>
+
+        <!-- ③ CORE — C3 multi-agent LangGraph nested box -->
+        <rect x="44" y="648" width="1252" height="246" rx="8" fill="rgba(251,146,60,0.06)" stroke="#fb923c" stroke-width="1.2" stroke-dasharray="5,4"/>
+        <text x="60" y="668" fill="#fb923c" font-size="10" font-weight="700">MULTI-AGENT LANGGRAPH STATE MACHINE  ·  src/llm/multi_agent/  —  MultiAgentState (TypedDict) flows through all 8 nodes</text>
+
+        <!-- debate loop arc -->
+        <path d="M 746 700 Q 746 682 700 682 L 638 682 Q 592 682 592 700" fill="none" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#ah-rose)"/>
+        <text x="669" y="676" fill="#fb7185" font-size="8" text-anchor="middle">debate loop · cap 2 rounds</text>
+
+        <!-- 8 role nodes -->
+        <rect x="64"   y="700" width="132" height="92" rx="6" fill="rgba(251,146,60,0.18)" stroke="#fb923c" stroke-width="1.4"/>
+        <text x="130" y="728" fill="white"   font-size="10" font-weight="600" text-anchor="middle">Technical</text>
+        <text x="130" y="742" fill="white"   font-size="10" font-weight="600" text-anchor="middle">Analyst</text>
+        <text x="130" y="762" fill="#fbbf24" font-size="8"  text-anchor="middle">gpt-4o-mini</text>
+        <text x="130" y="778" fill="#94a3b8" font-size="7"  text-anchor="middle">indicators</text>
+
+        <rect x="218"  y="700" width="132" height="92" rx="6" fill="rgba(251,146,60,0.18)" stroke="#fb923c" stroke-width="1.4"/>
+        <text x="284" y="728" fill="white"   font-size="10" font-weight="600" text-anchor="middle">News+Sent.</text>
+        <text x="284" y="742" fill="white"   font-size="10" font-weight="600" text-anchor="middle">Analyst</text>
+        <text x="284" y="762" fill="#fbbf24" font-size="8"  text-anchor="middle">gpt-4o-mini</text>
+        <text x="284" y="778" fill="#94a3b8" font-size="7"  text-anchor="middle">headlines</text>
+
+        <rect x="372"  y="700" width="132" height="92" rx="6" fill="rgba(251,146,60,0.18)" stroke="#fb923c" stroke-width="1.4"/>
+        <text x="438" y="728" fill="white"   font-size="10" font-weight="600" text-anchor="middle">Fundamental</text>
+        <text x="438" y="742" fill="white"   font-size="10" font-weight="600" text-anchor="middle">Analyst</text>
+        <text x="438" y="762" fill="#fbbf24" font-size="8"  text-anchor="middle">gpt-4o-mini</text>
+        <text x="438" y="778" fill="#94a3b8" font-size="7"  text-anchor="middle">fundamentals</text>
+
+        <rect x="526"  y="700" width="132" height="92" rx="6" fill="rgba(251,146,60,0.26)" stroke="#fb923c" stroke-width="1.4"/>
+        <text x="592" y="728" fill="white"   font-size="10" font-weight="600" text-anchor="middle">Bullish</text>
+        <text x="592" y="742" fill="white"   font-size="10" font-weight="600" text-anchor="middle">Researcher</text>
+        <text x="592" y="762" fill="#fbbf24" font-size="8"  text-anchor="middle">gpt-4o</text>
+        <text x="592" y="778" fill="#94a3b8" font-size="7"  text-anchor="middle">debate</text>
+
+        <rect x="680"  y="700" width="132" height="92" rx="6" fill="rgba(251,146,60,0.26)" stroke="#fb923c" stroke-width="1.4"/>
+        <text x="746" y="728" fill="white"   font-size="10" font-weight="600" text-anchor="middle">Bearish</text>
+        <text x="746" y="742" fill="white"   font-size="10" font-weight="600" text-anchor="middle">Researcher</text>
+        <text x="746" y="762" fill="#fbbf24" font-size="8"  text-anchor="middle">gpt-4o</text>
+        <text x="746" y="778" fill="#94a3b8" font-size="7"  text-anchor="middle">debate</text>
+
+        <rect x="834"  y="700" width="132" height="92" rx="6" fill="rgba(251,146,60,0.18)" stroke="#fb923c" stroke-width="1.4"/>
+        <text x="900" y="728" fill="white"   font-size="10" font-weight="600" text-anchor="middle">Trader</text>
+        <text x="900" y="742" fill="#94a3b8" font-size="8.5" text-anchor="middle">(synthesis)</text>
+        <text x="900" y="762" fill="#fbbf24" font-size="8"  text-anchor="middle">gpt-4o</text>
+        <text x="900" y="778" fill="#94a3b8" font-size="7"  text-anchor="middle">proposal</text>
+
+        <rect x="988"  y="700" width="132" height="92" rx="6" fill="rgba(251,146,60,0.18)" stroke="#fb923c" stroke-width="1.4"/>
+        <text x="1054" y="728" fill="white"   font-size="10" font-weight="600" text-anchor="middle">Risk</text>
+        <text x="1054" y="742" fill="white"   font-size="10" font-weight="600" text-anchor="middle">Manager</text>
+        <text x="1054" y="762" fill="#fbbf24" font-size="8"  text-anchor="middle">gpt-4o</text>
+        <text x="1054" y="778" fill="#94a3b8" font-size="7"  text-anchor="middle">3-viewpoint</text>
+
+        <rect x="1142" y="700" width="132" height="92" rx="6" fill="rgba(251,146,60,0.34)" stroke="#fb923c" stroke-width="2"/>
+        <text x="1208" y="728" fill="white"   font-size="10" font-weight="600" text-anchor="middle">Portfolio</text>
+        <text x="1208" y="742" fill="white"   font-size="10" font-weight="600" text-anchor="middle">Manager</text>
+        <text x="1208" y="762" fill="#fbbf24" font-size="8"  text-anchor="middle">gpt-4o</text>
+        <text x="1208" y="778" fill="#fb923c" font-size="7.5" text-anchor="middle">→ final weights</text>
+
+        <!-- node arrows -->
+        <line x1="196"  y1="746" x2="216"  y2="746" stroke="#fb923c" stroke-width="1.4" marker-end="url(#ah-orange-e)"/>
+        <line x1="350"  y1="746" x2="370"  y2="746" stroke="#fb923c" stroke-width="1.4" marker-end="url(#ah-orange-e)"/>
+        <line x1="504"  y1="746" x2="524"  y2="746" stroke="#fb923c" stroke-width="1.4" marker-end="url(#ah-orange-e)"/>
+        <line x1="658"  y1="746" x2="678"  y2="746" stroke="#fb923c" stroke-width="1.4" marker-end="url(#ah-orange-e)"/>
+        <line x1="812"  y1="746" x2="832"  y2="746" stroke="#fb7185" stroke-width="1.4" marker-end="url(#ah-rose)"/>
+        <text x="822" y="740" fill="#fb7185" font-size="7" text-anchor="middle">exit</text>
+        <line x1="966"  y1="746" x2="986"  y2="746" stroke="#fb923c" stroke-width="1.4" marker-end="url(#ah-orange-e)"/>
+        <line x1="1120" y1="746" x2="1140" y2="746" stroke="#fb923c" stroke-width="1.4" marker-end="url(#ah-orange-e)"/>
+
+        <text x="60" y="816" fill="#94a3b8" font-size="8.5">START → 3 analysts (sequential) → bullish ⇄ bearish debate → trader → risk_manager → portfolio_manager → END   ·   per-portfolio weekly decision</text>
+        <text x="60" y="833" fill="#94a3b8" font-size="8.5">graph.py StateGraph + conditional debate router  ·  60s wallclock cap per decision → hold-shares fallback (backtest never crashes)</text>
+        <text x="60" y="850" fill="#94a3b8" font-size="8.5">transcript.py persists full transcript + decisions.jsonl → results/multi_agent/transcripts/&#123;date&#125;.json   (replay source for /debate)</text>
+        <text x="60" y="872" fill="#fb7185" font-size="8.5">All 4 LLM/agentic agents read market data ONLY via LookaheadSafeTools — single audited choke-point for the no-lookahead invariant.</text>
+
+        <!-- ③ CORE — C4 Training panel -->
+        <rect x="44" y="918" width="612" height="192" rx="8" fill="rgba(6,78,59,0.10)" stroke="#34d399" stroke-width="1.1" stroke-dasharray="5,4"/>
+        <text x="60" y="940" fill="#34d399" font-size="10" font-weight="700">RL TRAINING  ·  src/rl_training/  ·  scripts/train_ddpg.py · train_ppo.py</text>
+
+        <rect x="60" y="956" width="180" height="58" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="150" y="980" fill="white"   font-size="9.5" font-weight="600" text-anchor="middle">train_ddpg / train_ppo</text>
+        <text x="150" y="997" fill="#94a3b8" font-size="8"  text-anchor="middle">CLI entry · configs/*.yaml</text>
+
+        <rect x="260" y="956" width="180" height="58" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="350" y="980" fill="white"   font-size="9.5" font-weight="600" text-anchor="middle">rl_training/core.py</text>
+        <text x="350" y="997" fill="#94a3b8" font-size="8"  text-anchor="middle">train_rl() · RewardScale</text>
+
+        <rect x="460" y="956" width="180" height="58" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="550" y="980" fill="white"   font-size="9.5" font-weight="600" text-anchor="middle">callbacks.py</text>
+        <text x="550" y="997" fill="#94a3b8" font-size="8"  text-anchor="middle">ValMetrics · Divergence</text>
+
+        <line x1="240" y1="985" x2="258" y2="985" stroke="#34d399" stroke-width="1.4" marker-end="url(#ah-green)"/>
+        <line x1="440" y1="985" x2="458" y2="985" stroke="#34d399" stroke-width="1.4" marker-end="url(#ah-green)"/>
+
+        <rect x="60" y="1034" width="580" height="50" rx="6" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="350" y="1055" fill="white"   font-size="9.5" font-weight="600" text-anchor="middle">results/models/ddpg_best.zip · ppo_best.zip</text>
+        <text x="350" y="1070" fill="#a78bfa" font-size="8"  text-anchor="middle">best-on-validation checkpoint → loaded by RLAgent at backtest</text>
+        <line x1="350" y1="1014" x2="350" y2="1032" stroke="#a78bfa" stroke-width="1.4" marker-end="url(#ah-violet)"/>
+        <text x="350" y="1102" fill="#94a3b8" font-size="8" text-anchor="middle">train 2019–2024  ·  validate 2025-Q1  ·  divergence → abort + PPO backup</text>
+
+        <!-- ③ CORE — C4 Eval panel -->
+        <rect x="684" y="918" width="612" height="192" rx="8" fill="rgba(6,78,59,0.10)" stroke="#34d399" stroke-width="1.1" stroke-dasharray="5,4"/>
+        <text x="700" y="940" fill="#34d399" font-size="10" font-weight="700">BACKTEST &amp; EVALUATION  ·  src/eval/  ·  scripts/run_all.py</text>
+
+        <rect x="700" y="956" width="180" height="58" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="790" y="980" fill="white"   font-size="9.5" font-weight="600" text-anchor="middle">run_all.py</text>
+        <text x="790" y="997" fill="#94a3b8" font-size="8"  text-anchor="middle">--skip-existing · seed 42</text>
+
+        <rect x="900" y="956" width="180" height="58" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="990" y="980" fill="white"   font-size="9.5" font-weight="600" text-anchor="middle">eval/backtest.py</text>
+        <text x="990" y="997" fill="#94a3b8" font-size="8"  text-anchor="middle">run_and_score()</text>
+
+        <rect x="1100" y="956" width="180" height="58" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="1190" y="977" fill="white"   font-size="9.5" font-weight="600" text-anchor="middle">eval/metrics.py</text>
+        <text x="1190" y="991" fill="white"   font-size="9.5" font-weight="600" text-anchor="middle">+ aggregate.py</text>
+        <text x="1190" y="1005" fill="#94a3b8" font-size="7.5" text-anchor="middle">financial + LLM metrics</text>
+
+        <line x1="880"  y1="985" x2="898"  y2="985" stroke="#34d399" stroke-width="1.4" marker-end="url(#ah-green)"/>
+        <line x1="1080" y1="985" x2="1098" y2="985" stroke="#34d399" stroke-width="1.4" marker-end="url(#ah-green)"/>
+
+        <rect x="700" y="1034" width="580" height="50" rx="6" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="990" y="1055" fill="white"   font-size="9.5" font-weight="600" text-anchor="middle">results/&#123;agent&#125;/ — portfolio_curve · holdings · metrics.json</text>
+        <text x="990" y="1070" fill="#a78bfa" font-size="8"  text-anchor="middle">+ transcripts + metrics_table.csv  ·  report/figures/*.png</text>
+        <line x1="990" y1="1014" x2="990" y2="1032" stroke="#a78bfa" stroke-width="1.4" marker-end="url(#ah-violet)"/>
+        <text x="990" y="1102" fill="#94a3b8" font-size="8" text-anchor="middle">6 strategies scored  ·  reproducible (seeded + LLM cache)  ·  feeds the API cache</text>
+
+        <!-- ============ ④ SERVICE LAYER ============ -->
+        <rect x="44" y="1197" width="232" height="66" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="160" y="1221" fill="white"   font-size="10" font-weight="600" text-anchor="middle">GET /agents</text>
+        <text x="160" y="1238" fill="#94a3b8" font-size="8"  text-anchor="middle">agent + baseline registry</text>
+        <text x="160" y="1251" fill="#94a3b8" font-size="8"  text-anchor="middle">routes/agents.py</text>
+
+        <rect x="299" y="1197" width="232" height="66" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="415" y="1221" fill="white"   font-size="10" font-weight="600" text-anchor="middle">GET /backtest/&#123;agent&#125;</text>
+        <text x="415" y="1238" fill="#94a3b8" font-size="8"  text-anchor="middle">cached curves + metrics</text>
+        <text x="415" y="1251" fill="#94a3b8" font-size="8"  text-anchor="middle">routes/backtest.py</text>
+
+        <rect x="554" y="1197" width="232" height="66" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="670" y="1221" fill="white"   font-size="10" font-weight="600" text-anchor="middle">GET /debate/&#123;agent&#125;</text>
+        <text x="670" y="1238" fill="#94a3b8" font-size="8"  text-anchor="middle">transcript replay by date</text>
+        <text x="670" y="1251" fill="#94a3b8" font-size="8"  text-anchor="middle">routes/debate.py</text>
+
+        <rect x="809" y="1197" width="232" height="66" rx="6" fill="rgba(6,78,59,0.4)" stroke="#fb7185" stroke-width="1.5"/>
+        <text x="925" y="1221" fill="white"   font-size="10" font-weight="600" text-anchor="middle">POST·GET /live/run</text>
+        <text x="925" y="1238" fill="#fb7185" font-size="8"  text-anchor="middle">SSE: agent_start / complete</text>
+        <text x="925" y="1251" fill="#fb7185" font-size="8"  text-anchor="middle">decision / error · routes/live.py</text>
+
+        <rect x="1064" y="1197" width="232" height="66" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="1180" y="1221" fill="white"   font-size="10" font-weight="600" text-anchor="middle">GET /healthz</text>
+        <text x="1180" y="1238" fill="#94a3b8" font-size="8"  text-anchor="middle">uptime probe</text>
+        <text x="1180" y="1251" fill="#94a3b8" font-size="8"  text-anchor="middle">routes/healthz.py</text>
+
+        <rect x="44" y="1287" width="400" height="58" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="244" y="1310" fill="white"   font-size="9.5" font-weight="600" text-anchor="middle">backend/main.py — FastAPI app</text>
+        <text x="244" y="1327" fill="#94a3b8" font-size="8"  text-anchor="middle">create_app() · CORS localhost · lifespan</text>
+
+        <rect x="470" y="1287" width="400" height="58" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="670" y="1310" fill="white"   font-size="9.5" font-weight="600" text-anchor="middle">cache.py · sse.py · live_data.py</text>
+        <text x="670" y="1327" fill="#94a3b8" font-size="8"  text-anchor="middle">JSONFileCache · SSE helpers · live inputs</text>
+
+        <rect x="896" y="1287" width="400" height="58" rx="6" fill="rgba(6,78,59,0.4)" stroke="#fb7185" stroke-width="1.5"/>
+        <text x="1096" y="1310" fill="white"   font-size="9.5" font-weight="600" text-anchor="middle">OFFLINE_MODE flag</text>
+        <text x="1096" y="1327" fill="#fb7185" font-size="8"  text-anchor="middle">/live/run → 503 → cached /debate fallback</text>
+
+        <!-- ============ ⑤ PRESENTATION ============ -->
+        <rect x="44" y="1431" width="232" height="66" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="160" y="1455" fill="white"   font-size="10" font-weight="600" text-anchor="middle">/  landing</text>
+        <text x="160" y="1472" fill="#94a3b8" font-size="8"  text-anchor="middle">OrbitalHero · FeatureTiles</text>
+        <text x="160" y="1485" fill="#94a3b8" font-size="8"  text-anchor="middle">MethodologyPipeline</text>
+
+        <rect x="299" y="1431" width="232" height="66" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="415" y="1455" fill="white"   font-size="10" font-weight="600" text-anchor="middle">/dashboard</text>
+        <text x="415" y="1472" fill="#94a3b8" font-size="8"  text-anchor="middle">PortfolioChart (Recharts)</text>
+        <text x="415" y="1485" fill="#94a3b8" font-size="8"  text-anchor="middle">MetricsTable · compare</text>
+
+        <rect x="554" y="1431" width="232" height="66" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="670" y="1455" fill="white"   font-size="10" font-weight="600" text-anchor="middle">/agents/[id]</text>
+        <text x="670" y="1472" fill="#94a3b8" font-size="8"  text-anchor="middle">HoldingsHeatmap</text>
+        <text x="670" y="1485" fill="#94a3b8" font-size="8"  text-anchor="middle">DrawdownChart · metrics</text>
+
+        <rect x="809" y="1431" width="232" height="66" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="925" y="1455" fill="white"   font-size="10" font-weight="600" text-anchor="middle">/debate</text>
+        <text x="925" y="1472" fill="#94a3b8" font-size="8"  text-anchor="middle">DebateGraph · DatePicker</text>
+        <text x="925" y="1485" fill="#94a3b8" font-size="8"  text-anchor="middle">transcript replay</text>
+
+        <rect x="1064" y="1431" width="232" height="66" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="1180" y="1455" fill="white"   font-size="10" font-weight="600" text-anchor="middle">/live</text>
+        <text x="1180" y="1472" fill="#94a3b8" font-size="8"  text-anchor="middle">SSEStream · LiveFlow</text>
+        <text x="1180" y="1485" fill="#94a3b8" font-size="8"  text-anchor="middle">RunButton · DecisionPanel</text>
+
+        <rect x="44" y="1521" width="608" height="56" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="348" y="1543" fill="white"   font-size="9.5" font-weight="600" text-anchor="middle">lib/api.ts</text>
+        <text x="348" y="1560" fill="#94a3b8" font-size="8"  text-anchor="middle">fetch /agents · /backtest · /debate  →  http://localhost:8000</text>
+
+        <rect x="688" y="1521" width="608" height="56" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="992" y="1543" fill="white"   font-size="9.5" font-weight="600" text-anchor="middle">lib/sse.ts</text>
+        <text x="992" y="1560" fill="#94a3b8" font-size="8"  text-anchor="middle">EventSource client · token accumulation · reconnect</text>
+
+        <!-- ============ LEGEND ============ -->
+        <rect x="44" y="1626" width="16" height="10" rx="2" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1"/>
+        <text x="66" y="1635" fill="#94a3b8" font-size="8.5">External service / API</text>
+
+        <rect x="244" y="1626" width="16" height="10" rx="2" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="266" y="1635" fill="#94a3b8" font-size="8.5">Python backend module</text>
+
+        <rect x="470" y="1626" width="16" height="10" rx="2" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1"/>
+        <text x="492" y="1635" fill="#94a3b8" font-size="8.5">Storage artifact (parquet / model)</text>
+
+        <rect x="760" y="1626" width="16" height="10" rx="2" fill="rgba(251,146,60,0.3)" stroke="#fb923c" stroke-width="1"/>
+        <text x="782" y="1635" fill="#94a3b8" font-size="8.5">Agent / decision unit</text>
+
+        <rect x="980" y="1626" width="16" height="10" rx="2" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="1002" y="1635" fill="#94a3b8" font-size="8.5">Frontend (Next.js)</text>
+
+        <line x1="1170" y1="1631" x2="1190" y2="1631" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="1196" y="1635" fill="#94a3b8" font-size="8.5">Lookahead-safe / SSE flow</text>
+      </svg>
+    </div>
+
+    <!-- Info Cards -->
+    <div class="cards">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot orange"></div>
+          <h3>Pipeline đầu-cuối &amp; Huấn luyện</h3>
+        </div>
+        <ul>
+          <li>• <b>Fetch</b> → vnstock giá + fundamentals, scrape CafeF/VietStock → <code>data/processed/*.parquet</code></li>
+          <li>• <b>Train</b> → DDPG/PPO (stable-baselines3) trên 2019–2024, chọn checkpoint tốt nhất trên val 2025-Q1</li>
+          <li>• <b>Backtest</b> → 4 agents + 2 baselines chạy qua <code>VNTradingEnv</code>, test 2025-05 → 2026-04</li>
+          <li>• <b>Serve</b> → FastAPI đọc cache → Next.js render dashboard / debate / live</li>
+          <li>• Reproducible: seed cố định + LLM cache → <code>run_all.py --skip-existing</code></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot amber"></div>
+          <h3>Công nghệ &amp; Tích hợp dịch vụ</h3>
+        </div>
+        <ul>
+          <li>• <b>OpenAI API</b> — <code>gpt-4o</code> / <code>gpt-4o-mini</code>, whitelist khóa cứng trong client.py</li>
+          <li>• <b>LangGraph</b> — state machine 8 vai trò, debate router, <code>astream_events</code> SSE</li>
+          <li>• <b>vnstock v4</b> (KBS→VCI) · <b>vnstock_news</b> RSS · scraper CafeF/VietStock</li>
+          <li>• <b>stable-baselines3 + gymnasium</b> cho DDPG/PPO · <b>ta</b> cho indicators</li>
+          <li>• <b>FastAPI + uvicorn + sse-starlette</b> · <b>Next.js 15 + Tailwind + Recharts</b></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot rose"></div>
+          <h3>Bất biến &amp; An toàn dữ liệu</h3>
+        </div>
+        <ul>
+          <li>• <b>Không lookahead</b> — tin ngày D chỉ hiện từ D+2; mọi LLM agent đọc qua <code>LookaheadSafeTools</code></li>
+          <li>• <b>Luật VN trong env</b> — biên ±7%, lot-100, phí bất đối xứng 0.15%/0.25%</li>
+          <li>• <b>Model lock</b> — cutoff Oct-2023 giữ test period out-of-distribution</li>
+          <li>• <b>Tách lớp</b> — agent xuất target weight [-1,1]; env lo clamp + làm tròn + phí</li>
+          <li>• <b>OFFLINE_MODE</b> — mất mạng thì /live trả 503, demo chạy bằng transcript cache</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="footer">
+      DRL vs LLM/Agentic Trading (Vietnam VN30) · 5 tickers VCB/FPT/HPG/VIC/VNM · 4 agents + 2 baselines · localhost demo · sơ đồ tạo 2026-05-20
+    </p>
+  </div>
+
+  <script>
+    async function copyAsImage(btn) {
+      const orig = btn.textContent;
+      try {
+        const el = document.getElementById('report-container');
+        const r = el.getBoundingClientRect();
+        const pad = 32;
+        const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        btn.textContent = '✓ Copied!';
+      } catch (e) {
+        btn.textContent = '✗ Failed';
+      }
+      setTimeout(() => btn.textContent = orig, 2000);
+    }
+
+    async function downloadPNG(btn) {
+      const orig = btn.textContent;
+      btn.textContent = '⏳ ...';
+      try {
+        const el = document.getElementById('report-container');
+        const r = el.getBoundingClientRect();
+        const pad = 32;
+        const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+        const link = document.createElement('a');
+        link.download = 'architecture.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        btn.textContent = '✓ Done!';
+      } catch (e) {
+        btn.textContent = '✗ Failed';
+      }
+      setTimeout(() => btn.textContent = orig, 2000);
+    }
+
+    async function downloadPDF(btn) {
+      const orig = btn.textContent;
+      btn.textContent = '⏳ ...';
+      try {
+        const el = document.getElementById('report-container');
+        const r = el.getBoundingClientRect();
+        const pad = 32;
+        const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
+        const pdf = new jsPDF({ orientation, unit: 'px', format: [canvas.width, canvas.height], hotfixes: ['px_scaling'] });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save('architecture.pdf');
+        btn.textContent = '✓ Done!';
+      } catch (e) {
+        btn.textContent = '✗ Failed';
+      }
+      setTimeout(() => btn.textContent = orig, 2000);
+    }
+  </script>
+</body>
+</html>
