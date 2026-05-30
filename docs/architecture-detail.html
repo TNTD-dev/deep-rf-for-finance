@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuantArena — Kiến trúc Hệ thống DRL vs LLM/Agentic Trading</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-card: rgba(15, 23, 42, 0.6);
+      --border: #1e293b;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-muted: #64748b;
+      --cyan: #22d3ee;
+      --emerald: #34d399;
+      --violet: #a78bfa;
+      --amber: #fbbf24;
+      --rose: #fb7185;
+      --orange: #fb923c;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 2rem;
+    }
+    .container { max-width: 1280px; margin: 0 auto; }
+    h1, h2, h3, h4 { font-family: 'JetBrains Mono', monospace; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+
+    /* Header */
+    .hero { text-align: center; padding: 3rem 0 2rem; }
+    .hero h1 { font-size: 2rem; letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+    .hero .accent { color: var(--cyan); }
+    .hero p { color: var(--text-dim); font-size: 1rem; max-width: 700px; margin: 0 auto; }
+    .badge-row { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap; }
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(30, 41, 59, 0.5);
+      color: var(--text-dim);
+    }
+    .badge.cyan { border-color: rgba(34, 211, 238, 0.3); color: var(--cyan); }
+    .badge.emerald { border-color: rgba(52, 211, 153, 0.3); color: var(--emerald); }
+    .badge.violet { border-color: rgba(167, 139, 250, 0.3); color: var(--violet); }
+    .badge.amber { border-color: rgba(251, 191, 36, 0.3); color: var(--amber); }
+
+    /* Stats bar */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 2rem 0;
+    }
+    .stat {
+      background: var(--bg-card);
+      padding: 1.25rem 1.5rem;
+      text-align: center;
+    }
+    .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 1.75rem; font-weight: 700; color: var(--cyan); }
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+    /* Sections */
+    .section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .section h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .section h2 .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .section h3 {
+      font-size: 0.95rem;
+      margin: 1.5rem 0 0.75rem;
+      color: var(--cyan);
+    }
+    .section p { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 0.75rem; }
+
+    /* Diagram */
+    .diagram-container {
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 1000px; display: block; }
+
+    /* Code blocks */
+    pre {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      overflow-x: auto;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      margin: 0.75rem 0;
+      color: var(--text-dim);
+    }
+    pre .kw { color: var(--violet); }
+    pre .fn { color: var(--amber); }
+    pre .st { color: var(--emerald); }
+    pre .cm { color: var(--text-muted); font-style: italic; }
+    pre .num { color: var(--orange); }
+    pre .dec { color: var(--rose); }
+
+    /* Inline code */
+    .inline-code {
+      background: rgba(34, 211, 238, 0.08);
+      border: 1px solid rgba(34, 211, 238, 0.15);
+      border-radius: 4px;
+      padding: 0.1rem 0.4rem;
+      font-size: 0.8rem;
+      color: var(--cyan);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Agent cards */
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    .agent-card {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      transition: border-color 0.2s;
+    }
+    .agent-card:hover { border-color: var(--cyan); }
+    .agent-card h4 {
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .agent-card .tag {
+      font-size: 0.6rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .tag-rl { background: rgba(167, 139, 250, 0.15); color: var(--violet); }
+    .tag-llm { background: rgba(34, 211, 238, 0.15); color: var(--cyan); }
+    .tag-bl { background: rgba(148, 163, 184, 0.15); color: var(--text-dim); }
+    .agent-card p { font-size: 0.8rem; color: var(--text-dim); margin: 0; }
+    .agent-card .result {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+    }
+    .result .pos { color: var(--emerald); }
+    .result .neg { color: var(--rose); }
+
+    /* Flow diagram inline */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      flex-wrap: wrap;
+      margin: 0.75rem 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+    }
+    .flow-node {
+      padding: 0.3rem 0.7rem;
+      border-radius: 6px;
+      border: 1px solid;
+      white-space: nowrap;
+    }
+    .flow-arrow { color: var(--text-muted); }
+    .flow-node.analyst { background: rgba(34, 211, 238, 0.08); border-color: rgba(34, 211, 238, 0.25); color: var(--cyan); }
+    .flow-node.researcher { background: rgba(251, 191, 36, 0.08); border-color: rgba(251, 191, 36, 0.25); color: var(--amber); }
+    .flow-node.trader { background: rgba(52, 211, 153, 0.08); border-color: rgba(52, 211, 153, 0.25); color: var(--emerald); }
+    .flow-node.risk { background: rgba(251, 113, 133, 0.08); border-color: rgba(251, 113, 133, 0.25); color: var(--rose); }
+    .flow-node.pm { background: rgba(167, 139, 250, 0.08); border-color: rgba(167, 139, 250, 0.25); color: var(--violet); }
+
+    /* Gotcha cards */
+    .gotcha {
+      background: rgba(251, 113, 133, 0.06);
+      border-left: 3px solid var(--rose);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 0.75rem 0;
+    }
+    .gotcha h4 { color: var(--rose); font-size: 0.85rem; margin-bottom: 0.4rem; }
+    .gotcha p { font-size: 0.8rem; color: var(--text-dim); margin: 0; }
+
+    .tip {
+      background: rgba(52, 211, 153, 0.06);
+      border-left: 3px solid var(--emerald);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 0.75rem 0;
+    }
+    .tip h4 { color: var(--emerald); font-size: 0.85rem; margin-bottom: 0.4rem; }
+    .tip p { font-size: 0.8rem; color: var(--text-dim); margin: 0; }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin: 0.75rem 0;
+    }
+    th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      background: rgba(0, 0, 0, 0.3);
+      color: var(--text-dim);
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid rgba(30, 41, 59, 0.5);
+      color: var(--text-dim);
+    }
+    tr:hover td { background: rgba(34, 211, 238, 0.03); }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 2rem 0 1rem;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 0.5rem;
+      margin-left: auto;
+      flex-shrink: 0;
+      align-items: center;
+    }
+    .toolbar-toggle {
+      background: transparent;
+      border: none;
+      color: #475569;
+      cursor: pointer;
+      font-size: 1.25rem;
+      line-height: 1;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      transition: color 0.2s, background 0.2s;
+    }
+    .toolbar-toggle:hover { color: #94a3b8; background: rgba(30, 41, 59, 0.5); }
+    .toolbar-actions { display: none; gap: 0.5rem; }
+    .toolbar.expanded .toolbar-actions { display: flex; }
+    .toolbar-actions button {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid #334155;
+      color: #94a3b8;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.375rem;
+      font-family: inherit;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .toolbar-actions button:hover {
+      background: rgba(51, 65, 85, 0.8);
+      color: white;
+      border-color: #475569;
+    }
+    @media print { .toolbar { display: none !important; } }
+  </style>
+</head>
+<body>
+<div class="container" id="report-container">
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       HERO
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="hero">
+    <h1>QuantArena <span class="accent">Architecture</span></h1>
+    <p>DRL vs LLM/Agentic Trading — Vietnam VN30 Market<br>
+       So sánh 8 agents: 3 baselines, 2 RL, 3 LLM trên cùng 1 trading environment</p>
+    <div class="badge-row">
+      <span class="badge cyan">stable-baselines3</span>
+      <span class="badge emerald">LangGraph</span>
+      <span class="badge violet">FastAPI + SSE</span>
+      <span class="badge amber">Next.js 16</span>
+      <span class="badge">vnstock v4</span>
+      <span class="badge cyan">gpt-4o / gpt-4o-mini</span>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-top:1rem;">
+      <div class="toolbar">
+        <div class="toolbar-actions">
+          <button onclick="copyAsImage(this)">📋 Copy</button>
+          <button onclick="downloadPNG(this)">🖼️ PNG</button>
+          <button onclick="downloadPDF(this)">📄 PDF</button>
+        </div>
+        <button class="toolbar-toggle" onclick="this.parentElement.classList.toggle('expanded')" title="Export options">⋯</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-value">8</div><div class="stat-label">Agents benchmarked</div></div>
+    <div class="stat"><div class="stat-value">248</div><div class="stat-label">Trading sessions (test)</div></div>
+    <div class="stat"><div class="stat-value">259</div><div class="stat-label">Unit tests passing</div></div>
+    <div class="stat"><div class="stat-value">$3.44</div><div class="stat-label">LLM cost (full backtest)</div></div>
+    <div class="stat"><div class="stat-value">+50.2%</div><div class="stat-label">Multi-agent return</div></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       ARCHITECTURE OVERVIEW DIAGRAM
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="diagram-container">
+    <svg viewBox="0 0 1100 780">
+      <defs>
+        <marker id="ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+        </marker>
+        <marker id="ah-cyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+        </marker>
+        <marker id="ah-emerald" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#34d399"/>
+        </marker>
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grid)"/>
+
+      <!-- ─── LAYER 1: DATA LAYER ─── -->
+      <rect x="30" y="30" width="1040" height="130" rx="12" fill="rgba(251,191,36,0.04)" stroke="#fbbf24" stroke-width="1" stroke-dasharray="8,4"/>
+      <text x="45" y="52" fill="#fbbf24" font-size="11" font-weight="600" font-family="JetBrains Mono">DATA LAYER</text>
+
+      <!-- vnstock -->
+      <rect x="50" y="65" width="140" height="55" rx="6" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="120" y="87" fill="white" font-size="11" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">vnstock v4</text>
+      <text x="120" y="103" fill="#94a3b8" font-size="8" text-anchor="middle">OHLCV + Fundamentals</text>
+
+      <!-- news scraper -->
+      <rect x="210" y="65" width="140" height="55" rx="6" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="280" y="87" fill="white" font-size="11" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">News Scraper</text>
+      <text x="280" y="103" fill="#94a3b8" font-size="8" text-anchor="middle">CafeF + VietStock</text>
+
+      <!-- indicators -->
+      <rect x="370" y="65" width="130" height="55" rx="6" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="435" y="87" fill="white" font-size="11" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">ta (Indicators)</text>
+      <text x="435" y="103" fill="#94a3b8" font-size="8" text-anchor="middle">RSI, MACD, SMA, BB</text>
+
+      <!-- calendar -->
+      <rect x="520" y="65" width="130" height="55" rx="6" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="585" y="87" fill="white" font-size="11" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">VN Calendar</text>
+      <text x="585" y="103" fill="#94a3b8" font-size="8" text-anchor="middle">Trading day align</text>
+
+      <!-- parquet output -->
+      <rect x="700" y="65" width="180" height="55" rx="6" fill="rgba(76,29,149,0.3)" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="790" y="87" fill="white" font-size="11" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">data/processed/</text>
+      <text x="790" y="103" fill="#94a3b8" font-size="8" text-anchor="middle">prices.parquet + news.parquet</text>
+
+      <!-- arrows data -->
+      <line x1="190" y1="92" x2="208" y2="92" stroke="#fbbf24" stroke-width="1.2" marker-end="url(#ah)"/>
+      <line x1="350" y1="92" x2="368" y2="92" stroke="#fbbf24" stroke-width="1.2" marker-end="url(#ah)"/>
+      <line x1="500" y1="92" x2="518" y2="92" stroke="#fbbf24" stroke-width="1.2" marker-end="url(#ah)"/>
+      <line x1="650" y1="92" x2="698" y2="92" stroke="#fbbf24" stroke-width="1.2" marker-end="url(#ah)"/>
+
+      <!-- lookahead-safe annotation -->
+      <rect x="920" y="65" width="130" height="55" rx="6" fill="rgba(251,113,133,0.08)" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/>
+      <text x="985" y="85" fill="#fb7185" font-size="9" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">LOOKHEAD-SAFE</text>
+      <text x="985" y="100" fill="#94a3b8" font-size="7" text-anchor="middle">news D → visible D+1</text>
+      <text x="985" y="112" fill="#94a3b8" font-size="7" text-anchor="middle">state T sees date &lt; T</text>
+
+      <!-- ─── LAYER 2: CORE LAYER ─── -->
+      <rect x="30" y="185" width="1040" height="290" rx="12" fill="rgba(52,211,153,0.04)" stroke="#34d399" stroke-width="1" stroke-dasharray="8,4"/>
+      <text x="45" y="207" fill="#34d399" font-size="11" font-weight="600" font-family="JetBrains Mono">CORE LAYER — src/</text>
+
+      <!-- Trading Env (center piece) -->
+      <rect x="370" y="220" width="260" height="100" rx="8" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="2"/>
+      <text x="500" y="245" fill="white" font-size="13" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">VNTradingEnv</text>
+      <text x="500" y="265" fill="#94a3b8" font-size="9" text-anchor="middle">gym.Env — ±7% band · lot-100 · fees</text>
+      <text x="500" y="282" fill="#94a3b8" font-size="9" text-anchor="middle">action: Box(-1,1,5) → target weights</text>
+      <text x="500" y="299" fill="#34d399" font-size="8" text-anchor="middle">obs: 56-dim [45 ind + 5 w + 5 ret + 1 cash]</text>
+      <text x="500" y="312" fill="#94a3b8" font-size="7" text-anchor="middle">decide() → env handles lot-round + band-clamp + fee</text>
+
+      <!-- Agents column left -->
+      <!-- Baselines -->
+      <rect x="50" y="225" width="140" height="45" rx="6" fill="rgba(148,163,184,0.12)" stroke="#94a3b8" stroke-width="1.5"/>
+      <text x="120" y="245" fill="white" font-size="10" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">Baselines</text>
+      <text x="120" y="260" fill="#94a3b8" font-size="8" text-anchor="middle">BuyAndHold · EqualWeight</text>
+
+      <!-- DDPG -->
+      <rect x="50" y="280" width="140" height="45" rx="6" fill="rgba(167,139,250,0.15)" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="120" y="300" fill="white" font-size="10" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">DDPG / PPO</text>
+      <text x="120" y="315" fill="#94a3b8" font-size="8" text-anchor="middle">stable-baselines3</text>
+
+      <!-- Random -->
+      <rect x="50" y="335" width="140" height="35" rx="6" fill="rgba(148,163,184,0.08)" stroke="#94a3b8" stroke-width="1"/>
+      <text x="120" y="357" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">RandomAgent</text>
+
+      <!-- LLM Agents column right -->
+      <!-- Zero-shot -->
+      <rect x="770" y="225" width="150" height="45" rx="6" fill="rgba(34,211,238,0.1)" stroke="#22d3ee" stroke-width="1.5"/>
+      <text x="845" y="245" fill="white" font-size="10" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">Zero-Shot</text>
+      <text x="845" y="260" fill="#94a3b8" font-size="8" text-anchor="middle">gpt-4o-mini · 1 prompt</text>
+
+      <!-- Single Agentic -->
+      <rect x="770" y="280" width="150" height="45" rx="6" fill="rgba(34,211,238,0.1)" stroke="#22d3ee" stroke-width="1.5"/>
+      <text x="845" y="300" fill="white" font-size="10" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">Single Agentic</text>
+      <text x="845" y="315" fill="#94a3b8" font-size="8" text-anchor="middle">gpt-4o · 4 tools</text>
+
+      <!-- Multi-Agent -->
+      <rect x="770" y="340" width="150" height="35" rx="6" fill="rgba(34,211,238,0.15)" stroke="#22d3ee" stroke-width="1.5"/>
+      <text x="845" y="362" fill="white" font-size="10" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">Multi-Agent (8 role)</text>
+
+      <!-- LangGraph detail -->
+      <rect x="940" y="225" width="120" height="150" rx="6" fill="rgba(34,211,238,0.06)" stroke="rgba(34,211,238,0.2)" stroke-width="1" stroke-dasharray="4,4"/>
+      <text x="1000" y="243" fill="#22d3ee" font-size="8" font-weight="600" text-anchor="middle">LangGraph</text>
+      <text x="1000" y="260" fill="#94a3b8" font-size="7" text-anchor="middle">3 Analysts</text>
+      <text x="1000" y="275" fill="#94a3b8" font-size="7" text-anchor="middle">2 Researchers</text>
+      <text x="1000" y="290" fill="#94a3b8" font-size="7" text-anchor="middle">Trader</text>
+      <text x="1000" y="305" fill="#94a3b8" font-size="7" text-anchor="middle">Risk Manager</text>
+      <text x="1000" y="320" fill="#94a3b8" font-size="7" text-anchor="middle">Portfolio Mgr</text>
+      <text x="1000" y="340" fill="#fb923c" font-size="7" text-anchor="middle">debate ≤ 2 rounds</text>
+      <text x="1000" y="355" fill="#fb923c" font-size="7" text-anchor="middle">timeout 30s/decision</text>
+
+      <!-- arrows to env -->
+      <line x1="190" y1="248" x2="368" y2="260" stroke="#94a3b8" stroke-width="1" marker-end="url(#ah)"/>
+      <line x1="190" y1="302" x2="368" y2="275" stroke="#a78bfa" stroke-width="1" marker-end="url(#ah)"/>
+      <line x1="770" y1="248" x2="632" y2="260" stroke="#22d3ee" stroke-width="1" marker-end="url(#ah)"/>
+      <line x1="770" y1="302" x2="632" y2="275" stroke="#22d3ee" stroke-width="1" marker-end="url(#ah)"/>
+      <line x1="920" y1="362" x2="845" y2="362" stroke="#22d3ee" stroke-width="0.8" stroke-dasharray="3,3"/>
+
+      <!-- Backtest + Metrics -->
+      <rect x="350" y="345" width="300" height="55" rx="6" fill="rgba(6,78,59,0.3)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="500" y="368" fill="white" font-size="11" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">Backtest Engine + Metrics</text>
+      <text x="500" y="385" fill="#94a3b8" font-size="8" text-anchor="middle">run_backtest() → Sharpe, MDD, Sortino, Turnover, LLM cost</text>
+
+      <line x1="500" y1="320" x2="500" y2="343" stroke="#34d399" stroke-width="1.2" marker-end="url(#ah-emerald)"/>
+
+      <!-- data → env arrow (vertical) -->
+      <line x1="790" y1="120" x2="500" y2="218" stroke="#a78bfa" stroke-width="1" stroke-dasharray="4,4" marker-end="url(#ah)"/>
+      <text x="680" y="160" fill="#a78bfa" font-size="8" font-family="JetBrains Mono">MarketData</text>
+
+      <!-- LLM shared box -->
+      <rect x="210" y="400" width="260" height="55" rx="6" fill="rgba(34,211,238,0.06)" stroke="rgba(34,211,238,0.2)" stroke-width="1"/>
+      <text x="340" y="422" fill="#22d3ee" font-size="10" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">LLM Shared (src/llm/)</text>
+      <text x="340" y="440" fill="#94a3b8" font-size="8" text-anchor="middle">client.py (model lock) · tools.py · serialize.py · parser.py</text>
+
+      <!-- ─── LAYER 3: SERVICE LAYER ─── -->
+      <rect x="30" y="480" width="500" height="120" rx="12" fill="rgba(167,139,250,0.04)" stroke="#a78bfa" stroke-width="1" stroke-dasharray="8,4"/>
+      <text x="45" y="502" fill="#a78bfa" font-size="11" font-weight="600" font-family="JetBrains Mono">SERVICE LAYER — backend/</text>
+
+      <rect x="50" y="515" width="150" height="50" rx="6" fill="rgba(6,78,59,0.3)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="125" y="537" fill="white" font-size="10" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">FastAPI</text>
+      <text x="125" y="552" fill="#94a3b8" font-size="8" text-anchor="middle">uvicorn :8000</text>
+
+      <rect x="220" y="515" width="100" height="50" rx="6" fill="rgba(6,78,59,0.3)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="270" y="537" fill="white" font-size="10" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">Routes</text>
+      <text x="270" y="552" fill="#94a3b8" font-size="7" text-anchor="middle">/agents /backtest</text>
+
+      <rect x="340" y="515" width="80" height="50" rx="6" fill="rgba(251,146,60,0.2)" stroke="#fb923c" stroke-width="1.5"/>
+      <text x="380" y="537" fill="white" font-size="10" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">SSE</text>
+      <text x="380" y="552" fill="#94a3b8" font-size="7" text-anchor="middle">/live/run</text>
+
+      <rect x="440" y="515" width="80" height="50" rx="6" fill="rgba(76,29,149,0.3)" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="480" y="537" fill="white" font-size="10" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">Cache</text>
+      <text x="480" y="552" fill="#94a3b8" font-size="7" text-anchor="middle">JSON LRU</text>
+
+      <line x1="170" y1="540" x2="218" y2="540" stroke="#34d399" stroke-width="1" marker-end="url(#ah)"/>
+      <line x1="320" y1="540" x2="338" y2="540" stroke="#34d399" stroke-width="1" marker-end="url(#ah)"/>
+      <line x1="420" y1="540" x2="438" y2="540" stroke="#34d399" stroke-width="1" marker-end="url(#ah)"/>
+
+      <!-- API endpoints -->
+      <rect x="550" y="510" width="200" height="85" rx="6" fill="rgba(0,0,0,0.3)" stroke="var(--border)" stroke-width="1"/>
+      <text x="650" y="530" fill="white" font-size="9" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">API Endpoints</text>
+      <text x="650" y="545" fill="#94a3b8" font-size="7" text-anchor="middle" font-family="JetBrains Mono">GET /agents</text>
+      <text x="650" y="558" fill="#94a3b8" font-size="7" text-anchor="middle" font-family="JetBrains Mono">GET /backtest/{agent}</text>
+      <text x="650" y="571" fill="#94a3b8" font-size="7" text-anchor="middle" font-family="JetBrains Mono">GET /debate/{agent}/{date}</text>
+      <text x="650" y="584" fill="#fb923c" font-size="7" text-anchor="middle" font-family="JetBrains Mono">POST /live/run (SSE stream)</text>
+
+      <!-- ─── LAYER 4: PRESENTATION ─── -->
+      <rect x="550" y="480" width="520" height="120" rx="12" fill="rgba(8,51,68,0.08)" stroke="#22d3ee" stroke-width="1" stroke-dasharray="8,4"/>
+      <text x="565" y="502" fill="#22d3ee" font-size="11" font-weight="600" font-family="JetBrains Mono">PRESENTATION — frontend/</text>
+
+      <rect x="570" y="515" width="130" height="50" rx="6" fill="rgba(8,51,68,0.3)" stroke="#22d3ee" stroke-width="1.5"/>
+      <text x="635" y="537" fill="white" font-size="10" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">Next.js 16</text>
+      <text x="635" y="552" fill="#94a3b8" font-size="7" text-anchor="middle">App Router + Tailwind</text>
+
+      <!-- Pages -->
+      <rect x="720" y="510" width="110" height="85" rx="6" fill="rgba(8,51,68,0.2)" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <text x="775" y="528" fill="white" font-size="8" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">Pages</text>
+      <text x="775" y="543" fill="#94a3b8" font-size="7" text-anchor="middle">/ — Landing</text>
+      <text x="775" y="555" fill="#94a3b8" font-size="7" text-anchor="middle">/dashboard — Leaderboard</text>
+      <text x="775" y="567" fill="#94a3b8" font-size="7" text-anchor="middle">/agents/[id] — Detail</text>
+      <text x="775" y="579" fill="#94a3b8" font-size="7" text-anchor="middle">/debate — Transcript replay</text>
+      <text x="775" y="591" fill="#fb923c" font-size="7" text-anchor="middle">/live — SSE streaming</text>
+
+      <!-- Components -->
+      <rect x="850" y="510" width="110" height="85" rx="6" fill="rgba(8,51,68,0.2)" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <text x="905" y="528" fill="white" font-size="8" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">Key Components</text>
+      <text x="905" y="543" fill="#94a3b8" font-size="7" text-anchor="middle">PortfolioChart</text>
+      <text x="905" y="555" fill="#94a3b8" font-size="7" text-anchor="middle">MetricsTable</text>
+      <text x="905" y="567" fill="#94a3b8" font-size="7" text-anchor="middle">DebateStream</text>
+      <text x="905" y="579" fill="#94a3b8" font-size="7" text-anchor="middle">HoldingsHeatmap</text>
+      <text x="905" y="591" fill="#94a3b8" font-size="7" text-anchor="middle">SSEStream (EventSource)</text>
+
+      <line x1="700" y1="540" x2="718" y2="540" stroke="#22d3ee" stroke-width="1" marker-end="url(#ah-cyan)"/>
+
+      <!-- ─── LAYER 5: RESULTS / CACHE ─── -->
+      <rect x="30" y="625" width="1040" height="80" rx="12" fill="rgba(76,29,149,0.04)" stroke="#a78bfa" stroke-width="1" stroke-dasharray="8,4"/>
+      <text x="45" y="647" fill="#a78bfa" font-size="11" font-weight="600" font-family="JetBrains Mono">RESULTS / CACHE</text>
+
+      <rect x="50" y="655" width="150" height="38" rx="6" fill="rgba(76,29,149,0.2)" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="125" y="679" fill="white" font-size="9" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">results/{agent}/</text>
+
+      <rect x="220" y="655" width="150" height="38" rx="6" fill="rgba(76,29,149,0.2)" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="295" y="679" fill="white" font-size="9" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">metrics.json</text>
+
+      <rect x="390" y="655" width="150" height="38" rx="6" fill="rgba(76,29,149,0.2)" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="465" y="679" fill="white" font-size="9" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">portfolio_curve.parquet</text>
+
+      <rect x="560" y="655" width="150" height="38" rx="6" fill="rgba(76,29,149,0.2)" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="635" y="679" fill="white" font-size="9" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">holdings.parquet</text>
+
+      <rect x="730" y="655" width="150" height="38" rx="6" fill="rgba(76,29,149,0.2)" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="805" y="679" fill="white" font-size="9" font-weight="600" text-anchor="middle" font-family="JetBrains Mono">transcripts/ (multi-agent)</text>
+
+      <line x1="500" y1="400" x2="500" y2="478" stroke="#34d399" stroke-width="1" stroke-dasharray="4,4" marker-end="url(#ah-emerald)"/>
+      <line x1="480" y1="565" x2="295" y2="653" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#ah)"/>
+
+      <!-- ─── LEGEND ─── -->
+      <text x="870" y="650" fill="white" font-size="9" font-weight="600" font-family="JetBrains Mono">Legend</text>
+      <rect x="870" y="660" width="14" height="9" rx="2" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1"/>
+      <text x="890" y="668" fill="#94a3b8" font-size="7">Data sources</text>
+      <rect x="870" y="674" width="14" height="9" rx="2" fill="rgba(6,78,59,0.3)" stroke="#34d399" stroke-width="1"/>
+      <text x="890" y="682" fill="#94a3b8" font-size="7">Core / Backend</text>
+      <rect x="870" y="688" width="14" height="9" rx="2" fill="rgba(8,51,68,0.3)" stroke="#22d3ee" stroke-width="1"/>
+      <text x="890" y="696" fill="#94a3b8" font-size="7">Frontend / LLM</text>
+      <rect x="960" y="660" width="14" height="9" rx="2" fill="rgba(76,29,149,0.2)" stroke="#a78bfa" stroke-width="1"/>
+      <text x="980" y="668" fill="#94a3b8" font-size="7">Storage</text>
+      <rect x="960" y="674" width="14" height="9" rx="2" fill="rgba(251,146,60,0.2)" stroke="#fb923c" stroke-width="1"/>
+      <text x="980" y="682" fill="#94a3b8" font-size="7">SSE / Streaming</text>
+      <rect x="960" y="688" width="14" height="9" rx="2" fill="rgba(251,113,133,0.08)" stroke="#fb7185" stroke-width="1" stroke-dasharray="3,3"/>
+      <text x="980" y="696" fill="#94a3b8" font-size="7">Invariant / Constraint</text>
+    </svg>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECTION 1: TRADING ENVIRONMENT
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2><span class="dot" style="background:var(--emerald)"></span>1. Trading Environment — src/trading_env.py</h2>
+    <p>Môi trường MDP chung cho mọi agent. Agent output weight liên tục [-1, 1], env xử lý toàn bộ quy tắc VN.</p>
+
+    <h3>Thiết kế cốt lõi</h3>
+    <table>
+      <tr><th>Tham số</th><th>Giá trị</th><th>Ý nghĩa</th></tr>
+      <tr><td>Action space</td><td>Box(-1, 1, (5,))</td><td>Target weight cho 5 ticker, long-only (clamp &lt; 0 → 0)</td></tr>
+      <tr><td>Observation</td><td>56-dim float32</td><td>45 z-scored indicators + 5 weights + 5 prev-returns + 1 cash_ratio</td></tr>
+      <tr><td>Reward</td><td>log(pv_t / pv_{t-1})</td><td>Log return — incentivize compound growth</td></tr>
+      <tr><td>Price band</td><td>±7% (HOSE)</td><td>Fill price clamp quanh previous close</td></tr>
+      <tr><td>Lot size</td><td>100 shares</td><td>Round DOWN, floor rounding</td></tr>
+      <tr><td>Buy fee</td><td>0.15%</td><td></td></tr>
+      <tr><td>Sell fee</td><td>0.25%</td><td>Bao gồm 0.1% transfer tax</td></tr>
+      <tr><td>Initial capital</td><td>1,000,000,000 VND</td><td>~1 billion VND</td></tr>
+    </table>
+
+    <h3>Code snippet: Execute with VN rules</h3>
+    <pre><span class="kw">def</span> <span class="fn">_execute_with_vn_rules</span>(self, t: <span class="kw">int</span>, target_weights: np.ndarray) -> <span class="kw">None</span>:
+    fill_price = self._fill_price(t)  <span class="cm"># ±7% band clamp</span>
+    pv = self._portfolio_value(t)
+    target_values = np.asarray(target_weights, dtype=np.<span class="num">float64</span>) * pv
+    target_shares = (
+        np.floor(target_values / denom / config.LOT_SIZE).astype(np.<span class="num">int64</span>)
+        * config.LOT_SIZE  <span class="cm"># lot-100 rounding</span>
+    )
+    delta = target_shares - self._holdings
+
+    <span class="cm"># Sells first to free cash</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(N_TICKERS):
+        <span class="kw">if</span> delta[i] < <span class="num">0</span>:
+            proceeds = shares * <span class="fn">float</span>(fill_price[i]) * (<span class="num">1</span> - config.SELL_FEE)
+            self._cash += proceeds
+    <span class="cm"># Buys with affordability fallback</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(N_TICKERS):
+        <span class="kw">if</span> delta[i] > <span class="num">0</span>:
+            cost = shares * <span class="fn">float</span>(fill_price[i]) * (<span class="num">1</span> + config.BUY_FEE)
+            <span class="kw">if</span> cost > self._cash + <span class="num">1e-6</span>:
+                affordable_lots = <span class="fn">int</span>(self._cash // per_lot_cost)
+                shares = <span class="fn">max</span>(<span class="num">0</span>, affordable_lots * config.LOT_SIZE)
+            self._cash -= cost</pre>
+
+    <h3>Lookahead-safe invariant</h3>
+    <pre><span class="cm"># state tại session T chỉ thấy data có date < T</span>
+<span class="cm"># News ngày D chỉ visible từ phiên D+1 close</span>
+<span class="cm"># → bake vào env layer, KHÔNG patch ở callsite</span>
+
+<span class="kw">def</span> <span class="fn">_compute_obs</span>(self) -> np.ndarray:
+    t = <span class="fn">min</span>(self._t, <span class="fn">len</span>(self.md.dates) - <span class="num">1</span>)
+    <span class="cm"># indicators_norm[t] đã được tính từ data có date ≤ t</span>
+    <span class="cm"># News alignment trong news_align.py gate theo rule D+1</span>
+    ind = self.md.indicators_norm[t].astype(np.<span class="num">float32</span>).reshape(-<span class="num">1</span>)  <span class="cm"># 45 dims</span></pre>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECTION 2: AGENT ARCHITECTURE
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2><span class="dot" style="background:var(--cyan)"></span>2. Kiến trúc 8 Agents</h2>
+    <p>Mọi agent implement cùng interface <span class="inline-code">decide(obs, info) -> action</span>. Env không biết agent là RL hay LLM.</p>
+
+    <h3>Agent Protocol</h3>
+    <pre><span class="dec">@runtime_checkable</span>
+<span class="kw">class</span> <span class="fn">Agent</span>(Protocol):
+    name: <span class="kw">str</span>  <span class="cm"># short identifier, dùng trong filesystem paths</span>
+
+    <span class="kw">def</span> <span class="fn">decide</span>(self, obs: np.ndarray, info: <span class="kw">dict</span>) -> np.ndarray:
+        <span class="cm"># Return action trong env.action_space = Box(-1, 1, (n_tickers,))</span>
+        <span class="cm"># RL agents: chỉ dùng obs</span>
+        <span class="cm"># LLM agents: dùng info['date'] cho schedule, inspect holdings/cash</span>
+        ...</pre>
+
+    <h3>Agent Registry — src/agents/__init__.py</h3>
+    <pre>AGENT_REGISTRY: <span class="kw">dict</span>[<span class="kw">str</span>, AgentFactory] = {
+    <span class="st">"buy_and_hold"</span>:    <span class="kw">lambda</span> md, news, env=<span class="kw">None</span>, **kw: BuyAndHold(),
+    <span class="st">"ddpg"</span>:            _rl_factory(MODEL_DIR / <span class="st">"ddpg_best.zip"</span>, <span class="st">"ddpg"</span>),
+    <span class="st">"equal_weight"</span>:    <span class="kw">lambda</span> md, news, env=<span class="kw">None</span>, **kw: EqualWeightRebalance(),
+    <span class="st">"multi_agent"</span>:     <span class="kw">lambda</span> md, news, env=<span class="kw">None</span>, **kw: MultiAgentTrader(md, news),
+    <span class="st">"ppo"</span>:             _rl_factory(MODEL_DIR / <span class="st">"ppo_best.zip"</span>, <span class="st">"ppo"</span>),
+    <span class="st">"random"</span>:          _random_factory,
+    <span class="st">"single_agentic"</span>:  <span class="kw">lambda</span> md, news, env=<span class="kw">None</span>, **kw: SingleAgenticTrader(md, news),
+    <span class="st">"zero_shot"</span>:       <span class="kw">lambda</span> md, news, env=<span class="kw">None</span>, **kw: ZeroShotTrader(md, news),
+}</pre>
+
+    <div class="agent-grid">
+      <div class="agent-card">
+        <h4>Buy & Hold <span class="tag tag-bl">baseline</span></h4>
+        <p>Lần đầu equal-weight 0.19/ticker. Sau đó giữ nguyên SHARES (không phải weight) — đúng nghĩa buy-and-hold.</p>
+        <div class="result"><span class="pos">+103.2%</span> · Sharpe 2.75 · MDD -19.7%</div>
+      </div>
+      <div class="agent-card">
+        <h4>Equal Weight <span class="tag tag-bl">baseline</span></h4>
+        <p>Rebalance 0.19/ticker mỗi tháng đầu tiên. 5% cash buffer tránh lot-100 rounding shortfall.</p>
+        <div class="result"><span class="pos">+53.1%</span> · Sharpe 2.14 · MDD -18.2%</div>
+      </div>
+      <div class="agent-card">
+        <h4>Random <span class="tag tag-bl">baseline</span></h4>
+        <p>Uniform sample từ action_space. Dùng env.np_random cho reproducibility.</p>
+        <div class="result"><span class="neg">-10.3%</span> · Sharpe -0.45 · MDD -26.7%</div>
+      </div>
+      <div class="agent-card">
+        <h4>DDPG <span class="tag tag-rl">RL</span></h4>
+        <p>Paper Xiong et al. Continuous action space. Train trên 2019-2024, val 2025-Q1. Saturate tanh → underperform.</p>
+        <div class="result"><span class="pos">+1.1%</span> · Sharpe 0.05 · MDD -23.2%</div>
+      </div>
+      <div class="agent-card">
+        <h4>PPO <span class="tag tag-rl">RL</span></h4>
+        <p>Backup agent. Discrete-ish policy tốt hơn DDPG trên VN market. Headline RL result.</p>
+        <div class="result"><span class="pos">+40.3%</span> · Sharpe 1.26 · MDD -17.6%</div>
+      </div>
+      <div class="agent-card">
+        <h4>Zero-Shot <span class="tag tag-llm">LLM</span></h4>
+        <p>gpt-4o-mini. 1 prompt: serialize state + headlines → JSON weights. Weekly decision. Không có tools.</p>
+        <div class="result"><span class="pos">+8.7%</span> · Sharpe 10.52 · MDD -1.4%</div>
+      </div>
+      <div class="agent-card">
+        <h4>Single Agentic <span class="tag tag-llm">LLM</span></h4>
+        <p>gpt-4o. 4 tools: get_price_history, get_indicators, get_news, get_fundamentals. Max 10 iterations. Audit tool-call log.</p>
+        <div class="result"><span class="pos">+6.5%</span> · Sharpe 8.93 · MDD -1.5%</div>
+      </div>
+      <div class="agent-card">
+        <h4>Multi-Agent <span class="tag tag-llm">LLM</span></h4>
+        <p>LangGraph 8-role debate system. Per-portfolio decision (không per-stock). Streaming transcript.</p>
+        <div class="result"><span class="pos">+50.2%</span> · Sharpe 2.19 · MDD -16.4%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECTION 3: MULTI-AGENT LANGGRAPH
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2><span class="dot" style="background:var(--amber)"></span>3. Multi-Agent System — LangGraph State Machine</h2>
+    <p>TradingAgents-style: 8 vai trò, debate ≤ 2 rounds, per-portfolio decision, streaming transcript.</p>
+
+    <h3>Luồng quyết định</h3>
+    <div class="flow">
+      <span class="flow-node analyst">Technical Analyst</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node analyst">News+Sentiment Analyst</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node analyst">Fundamental Analyst</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node researcher">Bullish Researcher</span>
+      <span class="flow-arrow">⇄</span>
+      <span class="flow-node researcher">Bearish Researcher</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node trader">Trader</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node risk">Risk Manager</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node pm">Portfolio Manager</span>
+    </div>
+
+    <h3>LangGraph Wiring — src/llm/multi_agent/graph.py</h3>
+    <pre><span class="kw">def</span> <span class="fn">build_graph</span>() -> StateGraph:
+    g = StateGraph(MultiAgentState)
+    g.add_node(<span class="st">"technical_analyst"</span>, technical_analyst)
+    g.add_node(<span class="st">"news_sentiment_analyst"</span>, news_sentiment_analyst)
+    g.add_node(<span class="st">"fundamental_analyst"</span>, fundamental_analyst)
+    g.add_node(<span class="st">"bullish_researcher"</span>, bullish_researcher)
+    g.add_node(<span class="st">"bearish_researcher"</span>, bearish_researcher)
+    g.add_node(<span class="st">"trader"</span>, trader)
+    g.add_node(<span class="st">"risk_manager"</span>, risk_manager)
+    g.add_node(<span class="st">"portfolio_manager"</span>, portfolio_manager)
+
+    g.add_edge(START, <span class="st">"technical_analyst"</span>)
+    g.add_edge(<span class="st">"technical_analyst"</span>, <span class="st">"news_sentiment_analyst"</span>)
+    g.add_edge(<span class="st">"news_sentiment_analyst"</span>, <span class="st">"fundamental_analyst"</span>)
+    g.add_edge(<span class="st">"fundamental_analyst"</span>, <span class="st">"bullish_researcher"</span>)
+    g.add_edge(<span class="st">"bullish_researcher"</span>, <span class="st">"bearish_researcher"</span>)
+    <span class="cm"># Debate loop: bearish increments round, conditional router</span>
+    g.add_conditional_edges(
+        <span class="st">"bearish_researcher"</span>, should_continue_debate,
+        {<span class="st">"loop"</span>: <span class="st">"bullish_researcher"</span>, <span class="st">"exit"</span>: <span class="st">"trader"</span>},
+    )
+    g.add_edge(<span class="st">"trader"</span>, <span class="st">"risk_manager"</span>)
+    g.add_edge(<span class="st">"risk_manager"</span>, <span class="st">"portfolio_manager"</span>)
+    g.add_edge(<span class="st">"portfolio_manager"</span>, END)
+    <span class="kw">return</span> g</pre>
+
+    <h3>Vai trò & Model allocation</h3>
+    <table>
+      <tr><th>Vai trò</th><th>Model</th><th>Input</th><th>Output</th></tr>
+      <tr><td>Technical Analyst</td><td>gpt-4o-mini</td><td>RSI, MACD, SMA, Bollinger, ATR</td><td>Technical summary</td></tr>
+      <tr><td>News+Sentiment Analyst</td><td>gpt-4o-mini</td><td>Recent headlines, sentiment</td><td>Sentiment summary</td></tr>
+      <tr><td>Fundamental Analyst</td><td>gpt-4o-mini</td><td>4-quarter financials</td><td>Fundamental summary</td></tr>
+      <tr><td>Bullish Researcher</td><td>gpt-4o</td><td>3 analyst reports</td><td>Bullish thesis</td></tr>
+      <tr><td>Bearish Researcher</td><td>gpt-4o</td><td>3 analyst reports + bullish thesis</td><td>Bearish counter-thesis</td></tr>
+      <tr><td>Trader</td><td>gpt-4o</td><td>Bull + bear debate</td><td>Trade proposal</td></tr>
+      <tr><td>Risk Manager</td><td>gpt-4o</td><td>3 viewpoints aggregate</td><td>Risk-adjusted proposal</td></tr>
+      <tr><td>Portfolio Manager</td><td>gpt-4o</td><td>Risk-adjusted proposal</td><td>Final JSON weights</td></tr>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECTION 4: LLM SHARED LAYER
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2><span class="dot" style="background:var(--cyan)"></span>4. LLM Shared Layer — src/llm/</h2>
+    <p>Layer chung cho cả 3 LLM agents: client, tools, serialize, parser.</p>
+
+    <h3>Model Lock — src/llm/client.py</h3>
+    <pre><span class="kw">class</span> <span class="fn">OpenAIClient</span>:
+    <span class="kw">def</span> <span class="fn">chat</span>(self, model: <span class="kw">str</span>, messages, tools=<span class="kw">None</span>, ...) -> ChatResult:
+        <span class="kw">if</span> model <span class="kw">not in</span> config.LLM_ALLOWED_MODELS:
+            <span class="kw">raise</span> <span class="fn">ValueError</span>(
+                <span class="st">f"model {model!r} not in whitelist "</span>
+                <span class="st">f"{sorted(config.LLM_ALLOWED_MODELS)} — see CLAUDE.md"</span>
+            )
+        <span class="cm"># Retry with exponential backoff</span>
+        <span class="kw">for</span> attempt <span class="kw">in</span> <span class="fn">range</span>(max_retries):
+            <span class="kw">try</span>:
+                resp = self._client.chat.completions.create(**kwargs)
+                <span class="kw">return</span> self._to_result(resp, model)
+            <span class="kw">except</span> (RateLimitError, APITimeoutError):
+                time.sleep(<span class="num">2</span>**attempt + <span class="num">1</span>)</pre>
+
+    <h3>Tools — src/llm/tools.py (OpenAI function calling spec)</h3>
+    <table>
+      <tr><th>Tool</th><th>Params</th><th>Data source</th><th>Lookahead gate</th></tr>
+      <tr><td>get_price_history</td><td>ticker, days</td><td>prices.parquet</td><td>Chỉ data ≤ current date</td></tr>
+      <tr><td>get_indicators</td><td>ticker</td><td>Computed từ ta lib</td><td>Chỉ data ≤ current date</td></tr>
+      <tr><td>get_news</td><td>date, ticker</td><td>news.parquet</td><td>News D visible từ D+1</td></tr>
+      <tr><td>get_fundamentals</td><td>ticker</td><td>vnstock Finance API</td><td>4-quarter snapshot, report_date gate</td></tr>
+    </table>
+
+    <h3>Parser — fallback hold khi malformed</h3>
+    <pre><span class="kw">def</span> <span class="fn">parse_weights_json</span>(text: <span class="kw">str</span>) -> <span class="kw">dict</span>[<span class="kw">str</span>, <span class="kw">float</span>]:
+    <span class="cm"># Try extract JSON from LLM response</span>
+    <span class="cm"># Fallback: {"VCB": 0.2, "FPT": 0.2, "HPG": 0.2, "VIC": 0.2, "VNM": 0.2}</span>
+    <span class="cm"># → "hold" action, log parse_failure_rate metric</span></pre>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECTION 5: DATA PIPELINE
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2><span class="dot" style="background:var(--amber)"></span>5. Data Pipeline — src/data_pipeline/</h2>
+    <p>Fetch → process → align → parquet. Lookahead-safe ngay từ output schema.</p>
+
+    <h3>Pipeline flow</h3>
+    <div class="flow">
+      <span class="flow-node analyst">vnstock v4</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node analyst">OHLCV fetch</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node analyst">ta indicators</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node analyst">VN Calendar</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node pm">prices.parquet</span>
+    </div>
+    <div class="flow">
+      <span class="flow-node researcher">CafeF/VietStock</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node researcher">Sitemap scrape</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node researcher">Ticker tagging</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node researcher">Timestamp norm</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node pm">news.parquet</span>
+    </div>
+
+    <h3>Key files</h3>
+    <table>
+      <tr><th>File</th><th>Trách nhiệm</th></tr>
+      <tr><td>vnstock_prices.py</td><td>Fetch OHLCV, retry fallback KBS → VCI</td></tr>
+      <tr><td>indicators.py</td><td>RSI, MACD, SMA(5/20/50), Bollinger, ATR → 9 features/ticker</td></tr>
+      <tr><td>calendar.py</td><td>VN trading calendar, align dates, skip holidays</td></tr>
+      <tr><td>vnstock_fundamentals.py</td><td>4-quarter snapshot (community tier limit)</td></tr>
+      <tr><td>news_scraper.py</td><td>CafeF + VietStock sitemap, rate-limit + retry</td></tr>
+      <tr><td>news_align.py</td><td>Normalize timestamp → Asia/Ho_Chi_Minh, tag ticker by keyword</td></tr>
+      <tr><td>news_live.py</td><td>vnstock_news RSS wrapper cho live mode</td></tr>
+    </table>
+
+    <h3>Env Data Loader — src/env_data_loader.py</h3>
+    <pre><span class="kw">class</span> <span class="fn">MarketData</span>(frozen=<span class="kw">True</span>):
+    dates: pd.DatetimeIndex            <span class="cm"># (T,)</span>
+    tickers: <span class="kw">tuple</span>[<span class="kw">str</span>, ...]           <span class="cm"># (5,) — config.TICKERS order</span>
+    close: np.ndarray                  <span class="cm"># (T, 5), float32</span>
+    indicators_norm: np.ndarray        <span class="cm"># (T, 5, 9), z-scored rolling 60-day</span>
+    warmup_offset: <span class="kw">int</span>                 <span class="cm"># first valid session (≈50 after SMA50)</span>
+
+<span class="kw">def</span> <span class="fn">load_market_data</span>(split=<span class="st">"full"</span>) -> MarketData:
+    <span class="cm"># Z-score BEFORE split → no cliff at split boundaries</span>
+    <span class="cm"># Split: train(2019-01→2024-12), val(2025-01→2025-04), test(2025-05→2026-04)</span></pre>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECTION 6: BACKTEST & METRICS
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2><span class="dot" style="background:var(--emerald)"></span>6. Backtest Engine + Metrics — src/eval/</h2>
+    <p>Chạy mọi agent qua test period, tính financial + LLM-specific metrics, lưu artifact cho web app.</p>
+
+    <h3>Backtest flow</h3>
+    <pre><span class="kw">def</span> <span class="fn">run_and_score</span>(agent, market_data, env=<span class="kw">None</span>, seed=<span class="num">42</span>):
+    env = env <span class="kw">or</span> VNTradingEnv(market_data)
+    result = run_backtest(env, agent, seed=seed)
+    metrics = compute_all_financial_metrics(
+        result.portfolio_curve, result.holdings_curve, market_data
+    )
+    <span class="kw">return</span> result, metrics</pre>
+
+    <h3>Metrics computed</h3>
+    <table>
+      <tr><th>Category</th><th>Metric</th><th>Notes</th></tr>
+      <tr><td>Financial</td><td>cumulative_return</td><td>Total % return over test window</td></tr>
+      <tr><td>Financial</td><td>sharpe_ratio</td><td>Annualized, risk-free = 0</td></tr>
+      <tr><td>Financial</td><td>sortino_ratio</td><td>Downside-only risk adjustment</td></tr>
+      <tr><td>Financial</td><td>max_drawdown</td><td>Peak-to-trough</td></tr>
+      <tr><td>Financial</td><td>turnover</td><td>Portfolio churn rate</td></tr>
+      <tr><td>Financial</td><td>total_cost</td><td>Transaction fees paid (VND)</td></tr>
+      <tr><td>LLM-specific</td><td>llm_cost_usd</td><td>OpenAI API spend</td></tr>
+      <tr><td>LLM-specific</td><td>avg_latency_s</td><td>Per-decision latency</td></tr>
+      <tr><td>LLM-specific</td><td>parse_failure_rate</td><td>% malformed JSON responses</td></tr>
+      <tr><td>LLM-specific</td><td>hallucination_rate</td><td>Tool calls returning no data (single-agentic)</td></tr>
+    </table>
+
+    <h3>Kết quả thực tế</h3>
+    <table>
+      <tr><th>Agent</th><th>Return</th><th>Sharpe</th><th>MDD</th><th>Steps</th><th>LLM Cost</th></tr>
+      <tr><td style="color:var(--text)">buy_and_hold</td><td style="color:var(--emerald)">+103.2%</td><td>2.75</td><td>-19.7%</td><td>247</td><td>—</td></tr>
+      <tr><td style="color:var(--text)">equal_weight</td><td style="color:var(--emerald)">+53.1%</td><td>2.14</td><td>-18.2%</td><td>247</td><td>—</td></tr>
+      <tr><td style="color:var(--text)">multi_agent</td><td style="color:var(--emerald)">+50.2%</td><td>2.19</td><td>-16.4%</td><td>247</td><td>$3.44</td></tr>
+      <tr><td style="color:var(--text)">ppo</td><td style="color:var(--emerald)">+40.3%</td><td>1.26</td><td>-17.6%</td><td>247</td><td>—</td></tr>
+      <tr><td style="color:var(--text)">zero_shot</td><td style="color:var(--emerald)">+8.7%</td><td>10.52</td><td>-1.4%</td><td>10</td><td>—</td></tr>
+      <tr><td style="color:var(--text)">single_agentic</td><td style="color:var(--emerald)">+6.5%</td><td>8.93</td><td>-1.5%</td><td>10</td><td>—</td></tr>
+      <tr><td style="color:var(--text)">ddpg</td><td style="color:var(--emerald)">+1.1%</td><td>0.05</td><td>-23.2%</td><td>247</td><td>—</td></tr>
+      <tr><td style="color:var(--text)">random</td><td style="color:var(--rose)">-10.3%</td><td>-0.45</td><td>-26.7%</td><td>247</td><td>—</td></tr>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECTION 7: BACKEND + SSE
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2><span class="dot" style="background:var(--violet)"></span>7. Backend — FastAPI + SSE Streaming</h2>
+    <p>HTTP layer đọc cache từ backtest results, serve dashboard + debate replay + live streaming.</p>
+
+    <h3>App structure — backend/main.py</h3>
+    <pre><span class="kw">def</span> <span class="fn">create_app</span>() -> FastAPI:
+    app = FastAPI(title=<span class="st">"deep-rf-finance API"</span>, version=<span class="st">"0.1.0"</span>)
+    app.add_middleware(CORSMiddleware,
+        allow_origins=[<span class="st">"http://localhost:3000"</span>, <span class="st">"http://localhost:8000"</span>])
+    app.include_router(healthz.router)
+    app.include_router(agents.router)
+    app.include_router(backtest.router)
+    app.include_router(debate.router)
+    app.include_router(live.router)
+    <span class="kw">return</span> app</pre>
+
+    <h3>SSE Streaming — POST /live/run</h3>
+    <pre><span class="cm"># SSE event flow:</span>
+event: agent_start     data: {<span class="st">"role"</span>: <span class="st">"technical_analyst"</span>}
+event: token           data: {<span class="st">"role"</span>: <span class="st">"technical_analyst"</span>, <span class="st">"text"</span>: <span class="st">"RSI VCB..."</span>}
+event: agent_complete  data: {<span class="st">"role"</span>: <span class="st">"technical_analyst"</span>, <span class="st">"summary"</span>: <span class="st">"..."</span>}
+<span class="cm"># ... repeat for all 8 roles ...</span>
+event: decision        data: {<span class="st">"weights"</span>: {<span class="st">"VCB"</span>: <span class="num">0.2</span>, ...}, <span class="st">"rationale"</span>: <span class="st">"..."</span>}</pre>
+
+    <h3>Offline mode toggle</h3>
+    <pre><span class="cm"># .env: OFFLINE_MODE=true</span>
+<span class="cm"># POST /live/run → HTTP 503 friendly</span>
+<span class="cm"># /debate vẫn hoạt động (cached transcripts)</span>
+<span class="cm"># → Cứu cánh khi demo mất wifi</span></pre>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECTION 8: FRONTEND
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2><span class="dot" style="background:var(--cyan)"></span>8. Frontend — Next.js 16 + Tailwind + Recharts</h2>
+    <p>4 routes, dark theme "QuantArena", SSE streaming cho debate/live.</p>
+
+    <h3>Routes</h3>
+    <table>
+      <tr><th>Route</th><th>Component</th><th>Mục đích</th></tr>
+      <tr><td>/</td><td>OrbitalHero + FeatureTiles</td><td>Landing page, hero animation, leaderboard baked-in</td></tr>
+      <tr><td>/dashboard</td><td>PortfolioChart + MetricsTable</td><td>So sánh 8 agents, portfolio curve overlay</td></tr>
+      <tr><td>/agents/[id]</td><td>HoldingsHeatmap + DrawdownChart</td><td>Chi tiết từng agent</td></tr>
+      <tr><td>/debate</td><td>DebateStream + DatePicker</td><td>Replay multi-agent transcript theo ngày</td></tr>
+      <tr><td>/live</td><td>SSEStream + LiveFlow</td><td>Run multi-agent real-time, streaming tokens</td></tr>
+    </table>
+
+    <h3>SSE Client — frontend/lib/sse.ts</h3>
+    <pre><span class="cm">// EventSource wrapper với reconnect</span>
+<span class="kw">export function</span> <span class="fn">useEventSource</span>(url: <span class="kw">string</span>, handlers) {
+  <span class="kw">const</span> es = <span class="kw">new</span> EventSource(url);
+  es.addEventListener(<span class="st">"token"</span>, (e) => {
+    <span class="kw">const</span> data = JSON.parse(e.data);
+    handlers.onToken(data.role, data.text);
+  });
+  es.addEventListener(<span class="st">"decision"</span>, (e) => {
+    handlers.onDecision(JSON.parse(e.data));
+  });
+  <span class="cm">// ... agent_start, agent_complete, error</span>
+}</pre>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECTION 9: CONFIG & REPRODUCIBILITY
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2><span class="dot" style="background:var(--amber)"></span>9. Config & Reproducibility — src/config.py</h2>
+    <p>Mọi locked parameter đọc từ .env, có default khớp PRD §15. KHÔNG thay đổi default mà không update PRD.</p>
+
+    <pre><span class="cm"># src/config.py — loading order:</span>
+<span class="cm"># 1. .env → os.environ (dotenv)</span>
+<span class="cm"># 2. Module-level constants read from env với PRD-locked defaults</span>
+
+TICKERS = [<span class="st">"VCB"</span>, <span class="st">"FPT"</span>, <span class="st">"HPG"</span>, <span class="st">"VIC"</span>, <span class="st">"VNM"</span>]
+TRAIN_START = <span class="st">"2019-01-01"</span>
+VAL_START   = <span class="st">"2025-01-01"</span>
+TEST_START  = <span class="st">"2025-05-01"</span>
+TEST_END    = <span class="st">"2026-04-30"</span>
+
+INITIAL_CAPITAL = <span class="num">1_000_000_000</span>  <span class="cm"># VND</span>
+BUY_FEE  = <span class="num">0.0015</span>  <span class="cm"># 0.15%</span>
+SELL_FEE = <span class="num">0.0025</span>  <span class="cm"># 0.25% (includes 0.1% transfer tax)</span>
+PRICE_BAND = <span class="num">0.07</span>  <span class="cm"># ±7% HOSE</span>
+LOT_SIZE = <span class="num">100</span>
+
+LLM_ALLOWED_MODELS = frozenset({<span class="st">"gpt-4o"</span>, <span class="st">"gpt-4o-mini"</span>})
+OFFLINE_MODE = <span class="kw">False</span>  <span class="cm"># true → /live returns 503</span></pre>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECTION 10: GOTCHAS
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2><span class="dot" style="background:var(--rose)"></span>10. Gotchas & Things That Will Bite You</h2>
+
+    <div class="gotcha">
+      <h4>1. Lookahead bias ở news timestamp</h4>
+      <p>Timestamp VN thường chỉ có ngày (không có giờ). News published ngày D sẽ có timestamp = D 00:00. Nếu không gate, agent thấy tin tức TRƯỚC khi thị trường đóng cửa ngày D. <strong>Rule: news ngày D chỉ visible từ phiên D+1 close.</strong> Bake vào env layer, không patch ở callsite. Người 2 phải verify trên mỗi PR.</p>
+    </div>
+
+    <div class="gotcha">
+      <h4>2. DDPG saturate tanh — underperform</h4>
+      <p>DDPG policy nhanh chóng saturate ở ±1 (tanh output bound), khiến agent luôn full-buy hoặc full-sell, không học được nuance. PPO backup được train song song và dùng làm headline RL result. Đừng ngạc nhiên khi DDPG chỉ +1.1%.</p>
+    </div>
+
+    <div class="gotcha">
+      <h4>3. LLM model lock — KHÔNG bypass</h4>
+      <p><span class="inline-code">gpt-4o</span> và <span class="inline-code">gpt-4o-mini</span> ONLY (cutoff Oct 2023). Test period 2025-05 → 2026-04 hoàn toàn out-of-distribution. Dùng model khác = leak future knowledge. <code>src/llm/client.py:58</code> enforce whitelist bằng <code>ValueError</code>, không phải warning.</p>
+    </div>
+
+    <div class="gotcha">
+      <h4>4. float32 precision loss ở lot-100 rounding</h4>
+      <p>Action weights là float32, nhưng portfolio value ~1e9 VND. float32 × 1e9 mất ~4 VND precision/ticker → <code>floor()</code> đôi khi drop 1 lot. Fix: promote lên float64 trước khi tính <code>target_shares</code>. Xem <code>trading_env.py:166-169</code>.</p>
+    </div>
+
+    <div class="gotcha">
+      <h4>5. BuyAndHold: giữ SHARES, không phải WEIGHTS</h4>
+      <p>Nếu emit equal-weight mỗi ngày, env sẽ rebalance daily (= EqualWeightRebalance). BuyAndHold phải emit weight tương ứng với CURRENT holdings để <code>delta_shares = 0</code>. Dùng half-lot buffer để float32 rounding không trigger trade.</p>
+    </div>
+
+    <div class="gotcha">
+      <h4>6. vnstock community tier — 4 quý gần nhất</h4>
+      <p>vnstock free tier giới hạn Finance API chỉ 4 quý gần nhất. Fundamentals lịch sử 2019-2024 không khả thi. Solution: defer fundamentals sang LLM tools (fetch live tại decision time). Không fake-historical-fundamentals.</p>
+    </div>
+
+    <div class="gotcha">
+      <h4>7. Multi-agent cost — ~$3 cho full backtest</h4>
+      <p>8-role system × 51 weekly decisions × ~5 LLM calls/role = ~2000+ API calls. Budget ~$3-6. Nếu re-run mà không có cache, cost sẽ nhân đôi. Luôn dùng <span class="inline-code">--skip-existing</span>.</p>
+    </div>
+
+    <div class="gotcha">
+      <h4>8. Z-score window trước split</h4>
+      <p>Z-score normalization tính trên FULL series trước khi slice theo train/val/test. Nếu tính sau slice, rolling window sẽ cliff ở split boundary → distribution shift artifact. Xem <code>env_data_loader.py:79</code>.</p>
+    </div>
+
+    <div class="gotcha">
+      <h4>9. Debate loop cap = 2 rounds</h4>
+      <p>Bullish ↔ Bearish researcher debate có conditional edge. Nếu <code>should_continue_debate</code> không return đúng, loop vô hạn. Luôn có <code>debate_rounds_max</code> trong state và check <code>state["debate_round"] >= state["debate_rounds_max"]</code>.</p>
+    </div>
+
+    <div class="gotcha">
+      <h4>10. CORS — chỉ localhost:3000 và localhost:8000</h4>
+      <p>Backend CORS chỉ allow 2 origins. Nếu chạy frontend ở port khác (e.g., 3001), request sẽ bị block. Sửa trong <code>backend/main.py:47</code>.</p>
+    </div>
+
+    <div class="tip">
+      <h4>Reproducibility guarantee</h4>
+      <p><span class="inline-code">python scripts/run_all.py --skip-existing</span> phải yield identical <code>metrics.json</code> trên second run. LLM agents cache theo <code>(date, ticker_set, prompt_hash)</code>. Mọi randomness đã được seed.</p>
+    </div>
+
+    <div class="tip">
+      <h4>Run commands</h4>
+      <p><span class="inline-code">pip install -e .</span> → <span class="inline-code">pytest</span> (259 tests) → <span class="inline-code">ruff check src/ tests/</span> → <span class="inline-code">python scripts/run_all.py --skip-existing</span> → <span class="inline-code">uvicorn backend.main:app --reload</span> → <span class="inline-code">cd frontend && npm run dev</span></p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>QuantArena — DRL vs LLM/Agentic Trading · VN30 · Deadline 2026-05-31 · 259 tests passing · $3.44 LLM cost</p>
+  </div>
+</div>
+
+<script>
+  async function copyAsImage(btn) {
+    const orig = btn.textContent;
+    try {
+      const el = document.getElementById('report-container');
+      const r = el.getBoundingClientRect();
+      const pad = 32;
+      const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      btn.textContent = '✓ Copied!';
+    } catch (e) {
+      btn.textContent = '✗ Failed';
+    }
+    setTimeout(() => btn.textContent = orig, 2000);
+  }
+  async function downloadPNG(btn) {
+    const orig = btn.textContent;
+    btn.textContent = '⏳ ...';
+    try {
+      const el = document.getElementById('report-container');
+      const r = el.getBoundingClientRect();
+      const pad = 32;
+      const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+      const link = document.createElement('a');
+      link.download = 'quantarena-architecture.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      btn.textContent = '✓ Done!';
+    } catch (e) {
+      btn.textContent = '✗ Failed';
+    }
+    setTimeout(() => btn.textContent = orig, 2000);
+  }
+  async function downloadPDF(btn) {
+    const orig = btn.textContent;
+    btn.textContent = '⏳ ...';
+    try {
+      const el = document.getElementById('report-container');
+      const r = el.getBoundingClientRect();
+      const pad = 32;
+      const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
+      const pdf = new jsPDF({ orientation, unit: 'px', format: [canvas.width, canvas.height], hotfixes: ['px_scaling'] });
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save('quantarena-architecture.pdf');
+      btn.textContent = '✓ Done!';
+    } catch (e) {
+      btn.textContent = '✗ Failed';
+    }
+    setTimeout(() => btn.textContent = orig, 2000);
+  }
+</script>
+</body>
+</html>
