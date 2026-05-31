@@ -64,7 +64,7 @@ identical trajectory (PRD §15 reproducibility).
 
 ```bash
 # Terminal 1 — backend
-uvicorn backend.main:app --reload
+uv uvicorn backend.main:app --reload
 
 # Terminal 2 — frontend
 cd frontend && npm install && npm run dev
