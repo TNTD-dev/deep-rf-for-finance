@@ -125,12 +125,17 @@ def setup_matplotlib() -> None:
 
     Call once at the top of each notebook. Idempotent.
     """
+    import logging
+
+    # Silence matplotlib font manager warnings when fallback fonts are used
+    logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+
     plt.rcParams.update(
         {
             "figure.dpi": 100,
             "savefig.dpi": 150,
             "savefig.bbox": "tight",
-            "font.family": ["Inter", "DejaVu Sans", "sans-serif"],
+            "font.family": ["DejaVu Sans", "Liberation Sans", "Ubuntu", "sans-serif"],
             "font.size": 11,
             "axes.titlesize": 13,
             "axes.titleweight": "600",
