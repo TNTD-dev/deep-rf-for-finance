@@ -41,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" suppressHydrationWarning className={`dark ${inter.variable} ${grotesk.variable} ${jbm.variable}`}>
+    <html lang="vi" className={`dark ${inter.variable} ${grotesk.variable} ${jbm.variable}`} suppressHydrationWarning>
       <body className="min-h-screen flex flex-col relative">
         <SiteNav />
         <div className="relative z-10 flex-1">{children}</div>
